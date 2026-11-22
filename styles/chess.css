@@ -1,0 +1,572 @@
+/* ==========================================================================
+   NEXUS ARCADE — Chess ("Grandmaster Protocol")
+   Tactical Cyber-Tournament Board, Custom Vector Pieces & Telemetry HUD
+   ========================================================================== */
+
+.chess-shell {
+  width: min(1320px, 95vw);
+  margin: 16px auto 28px;
+  grid-template-columns: minmax(0, 1fr) 380px;
+  gap: 20px;
+}
+
+.chess-stage {
+  padding: 18px 22px;
+  gap: 10px;
+}
+
+.chess-sidebar {
+  gap: 14px;
+}
+
+.turn-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: rgba(6, 8, 18, 0.75);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Player Strips (Material & Captured Pieces)
+   ========================================================================== */
+
+.player-strip {
+  width: min(560px, 100%);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 14px;
+  border-radius: var(--radius-md);
+  background: rgba(6, 8, 18, 0.68);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+}
+
+.player-strip.is-active-turn {
+  border-color: rgba(0, 245, 255, 0.5);
+  box-shadow: 0 0 18px rgba(0, 245, 255, 0.14);
+}
+
+.player-strip.is-black.is-active-turn {
+  border-color: rgba(255, 43, 214, 0.5);
+  box-shadow: 0 0 18px rgba(255, 43, 214, 0.14);
+}
+
+.player-identity {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.player-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.player-swatch.is-white {
+  background: #f8fafc;
+  border: 1px solid #00f5ff;
+  box-shadow: 0 0 8px rgba(0, 245, 255, 0.45);
+}
+
+.player-swatch.is-black {
+  background: #0f172a;
+  border: 1px solid #ff2bd6;
+  box-shadow: 0 0 8px rgba(255, 43, 214, 0.45);
+}
+
+.player-name {
+  font-family: var(--font-display);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.player-tier-tag {
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #f0abfc;
+  background: rgba(255, 43, 214, 0.14);
+  border: 1px solid rgba(255, 43, 214, 0.34);
+}
+
+.player-tier-tag.is-human {
+  color: #67e8f9;
+  background: rgba(0, 245, 255, 0.12);
+  border-color: rgba(0, 245, 255, 0.34);
+}
+
+.captured-tray {
+  flex: 1 1 auto;
+  min-height: 22px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.captured-piece-icon {
+  width: 19px;
+  height: 19px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.captured-piece-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.player-material {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  font-family: var(--font-mono);
+}
+
+.material-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.material-val {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ==========================================================================
+   8x8 Chessboard + Coordinates + Square States
+   ========================================================================== */
+
+.chess-board-frame {
+  position: relative;
+  width: min(560px, 62vh, 100%);
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  grid-template-rows: 1fr 22px;
+  gap: 6px;
+  padding: 10px 12px 8px 8px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(155deg, rgba(13, 19, 40, 0.96), rgba(7, 10, 24, 0.98));
+  border: 1px solid rgba(0, 245, 255, 0.28);
+  box-shadow:
+    inset 0 0 24px rgba(0, 245, 255, 0.06),
+    0 20px 50px rgba(0, 0, 0, 0.6);
+}
+
+.board-rank-axis {
+  display: grid;
+  grid-template-rows: repeat(8, 1fr);
+  align-items: center;
+  justify-items: center;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  user-select: none;
+}
+
+.board-file-axis {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  align-items: center;
+  justify-items: center;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  user-select: none;
+}
+
+.chess-board {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  grid-template-rows: repeat(8, 1fr);
+  border-radius: 10px;
+  overflow: hidden;
+  border: 2px solid rgba(148, 163, 184, 0.32);
+  box-shadow: 0 0 24px rgba(0, 0, 0, 0.55);
+}
+
+.chess-square {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  cursor: pointer;
+  background-color: #1b243b;
+  transition: background-color 120ms ease, box-shadow 140ms ease;
+  user-select: none;
+}
+
+.chess-square.is-light {
+  background-color: #4f6387;
+}
+
+.chess-square.is-dark {
+  background-color: #192238;
+}
+
+.chess-square:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.chess-square:focus {
+  outline: none;
+}
+
+/* Last Move Highlight */
+.chess-square.is-last-from.is-light,
+.chess-square.is-last-to.is-light {
+  background-color: #5b787f;
+  box-shadow: inset 0 0 0 2px rgba(251, 191, 36, 0.35);
+}
+
+.chess-square.is-last-from.is-dark,
+.chess-square.is-last-to.is-dark {
+  background-color: #263f4c;
+  box-shadow: inset 0 0 0 2px rgba(251, 191, 36, 0.35);
+}
+
+/* Selected Piece Square */
+.chess-square.is-selected {
+  background-color: #0e586e !important;
+  box-shadow:
+    inset 0 0 0 3px var(--neon-cyan),
+    inset 0 0 18px rgba(0, 245, 255, 0.45);
+}
+
+/* Hint Highlight */
+.chess-square.is-hint-from,
+.chess-square.is-hint-to {
+  box-shadow:
+    inset 0 0 0 3px var(--neon-emerald),
+    inset 0 0 20px rgba(16, 185, 129, 0.52);
+  animation: chessHintPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes chessHintPulse {
+  0%, 100% {
+    box-shadow:
+      inset 0 0 0 3px rgba(16, 185, 129, 0.95),
+      inset 0 0 16px rgba(16, 185, 129, 0.4);
+  }
+  50% {
+    box-shadow:
+      inset 0 0 0 4px #34d399,
+      inset 0 0 26px rgba(52, 211, 153, 0.72);
+  }
+}
+
+/* King In Check Crimson Pulse */
+.chess-square.is-check {
+  background-image: radial-gradient(circle, rgba(251, 113, 133, 0.85) 10%, rgba(190, 18, 60, 0.55) 62%, transparent 88%);
+  animation: chessCheckPulse 1.05s ease-in-out infinite;
+}
+
+@keyframes chessCheckPulse {
+  0%, 100% {
+    box-shadow: inset 0 0 0 3px #fb7185, inset 0 0 16px rgba(251, 113, 133, 0.75);
+  }
+  50% {
+    box-shadow: inset 0 0 0 4px #fda4af, inset 0 0 26px rgba(251, 113, 133, 0.98);
+  }
+}
+
+/* Keyboard Navigation Cursor */
+.chess-square.is-cursor::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: 5px;
+  border: 2px dashed rgba(251, 191, 36, 0.95);
+  pointer-events: none;
+  z-index: 4;
+}
+
+/* Legal Move Indicators */
+.legal-dot {
+  position: absolute;
+  width: 28%;
+  height: 28%;
+  border-radius: 999px;
+  background: rgba(0, 245, 255, 0.76);
+  box-shadow: 0 0 10px rgba(0, 245, 255, 0.65);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.capture-ring {
+  position: absolute;
+  inset: 5%;
+  border-radius: 999px;
+  border: 4px solid rgba(255, 43, 214, 0.85);
+  box-shadow: 0 0 12px rgba(255, 43, 214, 0.5);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Custom Vector Piece SVG */
+.piece-svg {
+  width: 82%;
+  height: 82%;
+  position: relative;
+  z-index: 3;
+  pointer-events: none;
+  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.55));
+  transition: transform 120ms ease;
+}
+
+.chess-square.is-selected .piece-svg {
+  transform: translateY(-2px) scale(1.06);
+}
+
+/* ==========================================================================
+   Promotion Modal
+   ========================================================================== */
+
+.promotion-overlay {
+  border-radius: var(--radius-lg);
+}
+
+.promotion-card {
+  max-width: 340px;
+  padding: 20px;
+}
+
+.promotion-title {
+  margin: 0 0 6px;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: var(--neon-cyan);
+}
+
+.promotion-subtitle {
+  margin: 0 0 16px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.promotion-choices {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.promo-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1 / 1;
+  padding: 8px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 245, 255, 0.4);
+  background: rgba(15, 23, 42, 0.9);
+  cursor: pointer;
+  transition: transform 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.promo-btn:hover,
+.promo-btn:focus-visible {
+  outline: none;
+  transform: translateY(-2px);
+  border-color: var(--neon-cyan);
+  box-shadow: var(--glow-cyan);
+}
+
+.promo-btn svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* ==========================================================================
+   Sidebar Controls, Predictor & Move History
+   ========================================================================== */
+
+.chess-controls-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.difficulty-block {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.eval-badge {
+  padding: 3px 10px;
+  border-radius: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  background: rgba(6, 8, 18, 0.82);
+  border: 1px solid rgba(0, 245, 255, 0.32);
+  font-variant-numeric: tabular-nums;
+}
+
+.eval-meter-bar {
+  background: linear-gradient(90deg, rgba(15, 23, 42, 0.95), rgba(88, 28, 135, 0.45));
+}
+
+.predictor-detail {
+  margin: 4px 0 0;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.chess-stat-grid .stat-item {
+  padding: 8px 10px;
+}
+
+.chess-stat-grid .stat-value {
+  font-size: 1.15rem;
+}
+
+.move-history-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.move-history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.move-history-header .hud-card-title {
+  margin: 0;
+}
+
+.move-count-tag {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.move-list {
+  margin: 0;
+  padding: 6px 8px;
+  list-style: none;
+  min-height: 112px;
+  max-height: 170px;
+  overflow-y: auto;
+  border-radius: var(--radius-md);
+  background: rgba(6, 8, 18, 0.72);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+}
+
+.move-list-empty {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  padding: 8px 4px;
+  text-align: center;
+}
+
+.move-row {
+  display: grid;
+  grid-template-columns: 36px 1fr 1fr;
+  gap: 6px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  align-items: center;
+}
+
+.move-row:nth-child(even) {
+  background: rgba(148, 163, 184, 0.05);
+}
+
+.move-num {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.move-ply {
+  color: var(--text-primary);
+  font-weight: 600;
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.move-ply.is-latest {
+  background: rgba(0, 245, 255, 0.16);
+  color: var(--neon-cyan);
+}
+
+/* ==========================================================================
+   Responsive Adjustments
+   ========================================================================== */
+
+@media (max-width: 1024px) {
+  .chess-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .chess-board-frame {
+    width: min(560px, 86vw);
+  }
+}
+
+@media (max-width: 680px) {
+  .chess-stage {
+    padding: 12px;
+  }
+
+  .chess-board-frame {
+    width: 100%;
+    padding: 8px 8px 6px 4px;
+    grid-template-columns: 16px 1fr;
+    grid-template-rows: 1fr 18px;
+    gap: 4px;
+  }
+
+  .player-strip {
+    padding: 6px 10px;
+    gap: 8px;
+  }
+
+  .player-name {
+    font-size: 0.68rem;
+  }
+}

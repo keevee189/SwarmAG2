@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TETROMINO OVERDRIVE — Nexus Arcade</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23060812'/%3E%3Crect x='14' y='18' width='14' height='14' rx='3' fill='%2300f5ff'/%3E%3Crect x='30' y='18' width='14' height='14' rx='3' fill='%2300f5ff'/%3E%3Crect x='30' y='34' width='14' height='14' rx='3' fill='%23ff2bd6'/%3E%3Crect x='14' y='34' width='14' height='14' rx='3' fill='%238b5cf6'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="../styles/theme.css" />
+  <link rel="stylesheet" href="../styles/tetris.css" />
+</head>
+<body>
+  <div class="arcade-page">
+    <header class="arcade-topbar">
+      <div class="topbar-left">
+        <a class="arcade-back-link" href="../index.html">← Back to Arcade</a>
+        <h1 class="topbar-title">TETROMINO OVERDRIVE</h1>
+        <span class="game-badge">TETRIS // 7-BAG SRS</span>
+      </div>
+      <div class="topbar-actions">
+        <button type="button" class="btn btn-ghost btn-sm" data-mute-toggle aria-pressed="false">
+          <span data-mute-icon aria-hidden="true">🔊</span>
+          <span data-mute-label>Sound On</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="game-shell">
+      <section class="game-stage tetris-stage" aria-label="Tetris Playfield">
+        <div id="status-banner" class="status-banner is-info" role="status" aria-live="polite">
+          <span id="status-text">Ready to drop — press Start or Enter to begin.</span>
+          <span id="status-tag" class="status-tag">STANDBY</span>
+        </div>
+
+        <div class="tetris-arena">
+          <div class="arena-side-col">
+            <div class="preview-card">
+              <div class="preview-header">
+                <span class="preview-title">HOLD</span>
+                <span class="kbd">C</span>
+              </div>
+              <canvas
+                id="hold-canvas"
+                class="preview-canvas"
+                width="112"
+                height="92"
+                aria-label="Hold tetromino preview"
+              ></canvas>
+            </div>
+
+            <div class="preview-card mini-telemetry">
+              <div class="mini-stat">
+                <span class="stat-label">TIME</span>
+                <span id="time-value" class="mini-stat-value">00:00</span>
+              </div>
+              <div class="mini-stat">
+                <span class="stat-label">COMBO</span>
+                <span id="combo-value" class="mini-stat-value">0x</span>
+              </div>
+              <div class="mini-stat">
+                <span class="stat-label">B2B CHAIN</span>
+                <span id="b2b-value" class="mini-stat-value">OFF</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="board-frame">
+            <canvas
+              id="tetris-canvas"
+              class="tetris-board-canvas"
+              width="320"
+              height="640"
+              tabindex="0"
+              aria-label="Tetris 10 by 20 playfield"
+            ></canvas>
+
+            <div id="game-overlay" class="game-overlay">
+              <div class="overlay-card">
+                <div id="overlay-kicker" class="overlay-kicker">SYSTEM STANDBY</div>
+                <h2 id="overlay-title" class="overlay-title">TETROMINO OVERDRIVE</h2>
+                <p id="overlay-subtitle" class="overlay-subtitle">
+                  Reach 10,000 pts for Victory Rank, or chase a new Neon High Score.
+                </p>
+                <button type="button" id="overlay-action-btn" class="btn btn-primary">
+                  Start Game
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="arena-side-col">
+            <div class="preview-card">
+              <div class="preview-header">
+                <span class="preview-title">NEXT 3</span>
+                <span class="preview-sub">7-BAG</span>
+              </div>
+              <canvas
+                id="next-canvas"
+                class="preview-canvas"
+                width="112"
+                height="264"
+                aria-label="Next 3 tetromino queue"
+              ></canvas>
+            </div>
+
+            <div class="preview-card mini-telemetry">
+              <div class="mini-stat">
+                <span class="stat-label">VICTORY GOAL</span>
+                <span class="mini-stat-value is-gold">10,000</span>
+              </div>
+              <div class="mini-stat">
+                <span class="stat-label">NEXT LVL</span>
+                <span id="next-level-lines" class="mini-stat-value">10 LINES</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="touch-controls" aria-label="On-screen Tetris controls">
+          <button type="button" id="btn-left" class="btn btn-ghost touch-btn" data-action="left" title="Move Left (ArrowLeft / A)">
+            ◀ Left
+          </button>
+          <button type="button" id="btn-rotate-ccw" class="btn btn-ghost touch-btn" data-action="rotate-ccw" title="Rotate CCW (Z)">
+            ↺ CCW
+          </button>
+          <button type="button" id="btn-rotate-cw" class="btn btn-ghost touch-btn" data-action="rotate-cw" title="Rotate CW (ArrowUp / W / X)">
+            ↻ CW
+          </button>
+          <button type="button" id="btn-right" class="btn btn-ghost touch-btn" data-action="right" title="Move Right (ArrowRight / D)">
+            Right ▶
+          </button>
+          <button type="button" id="btn-hold" class="btn btn-secondary touch-btn" data-action="hold" title="Hold Piece (C / Shift)">
+            Hold
+          </button>
+          <button type="button" id="btn-down" class="btn btn-ghost touch-btn" data-action="down" title="Soft Drop (ArrowDown / S)">
+            ▼ Soft
+          </button>
+          <button type="button" id="btn-drop" class="btn btn-primary touch-btn touch-btn-wide" data-action="drop" title="Hard Drop (Space)">
+            ⤓ Hard Drop
+          </button>
+        </div>
+      </section>
+
+      <aside class="game-sidebar" aria-label="Game controls and telemetry">
+        <section class="hud-card">
+          <h2 class="hud-card-title">Cabinet Controls</h2>
+          <div class="controls-row">
+            <button type="button" id="start-btn" class="btn btn-primary">Start</button>
+            <button type="button" id="pause-btn" class="btn btn-secondary" disabled>Pause</button>
+            <button type="button" id="reset-btn" class="btn btn-ghost">Reset</button>
+          </div>
+        </section>
+
+        <section class="hud-card">
+          <h2 class="hud-card-title">Scoreboard Telemetry</h2>
+          <div class="stat-grid">
+            <div class="stat-item">
+              <span class="stat-label">Score</span>
+              <span id="score-value" class="stat-value is-cyan">0</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">High Score</span>
+              <span id="high-score-value" class="stat-value is-gold">0</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Level</span>
+              <span id="level-value" class="stat-value is-magenta">1</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Lines</span>
+              <span id="lines-value" class="stat-value is-emerald">0</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="predictor-card" aria-label="Survival Outlook and Victory Forecast">
+          <div class="predictor-header">
+            <h2 class="predictor-title">Survival Outlook</h2>
+            <span id="forecast-percent" class="forecast-percent">80%</span>
+          </div>
+          <div class="predictor-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="80">
+            <div id="forecast-fill" class="predictor-fill is-cyan" style="width: 80%;"></div>
+          </div>
+          <div class="predictor-meta">
+            <span id="forecast-label" class="forecast-label">ON TRACK</span>
+            <span>TARGET: 10,000 PTS</span>
+          </div>
+          <p id="forecast-detail" class="predictor-text">
+            Balanced grid (height 0, 0 holes) — 0% to Victory Rank.
+          </p>
+        </section>
+
+        <section class="hud-card">
+          <h2 class="hud-card-title">Keyboard Shortcuts</h2>
+          <div class="key-hints">
+            <span class="key-hint-item"><span class="kbd">←</span><span class="kbd">→</span> / <span class="kbd">A</span><span class="kbd">D</span> Move</span>
+            <span class="key-hint-item"><span class="kbd">↓</span> / <span class="kbd">S</span> Soft Drop</span>
+            <span class="key-hint-item"><span class="kbd">↑</span> / <span class="kbd">W</span> / <span class="kbd">X</span> Rotate CW</span>
+            <span class="key-hint-item"><span class="kbd">Z</span> Rotate CCW</span>
+            <span class="key-hint-item"><span class="kbd">Space</span> Hard Drop</span>
+            <span class="key-hint-item"><span class="kbd">C</span> / <span class="kbd">Shift</span> Hold</span>
+            <span class="key-hint-item"><span class="kbd">P</span> Pause</span>
+            <span class="key-hint-item"><span class="kbd">Enter</span> Start</span>
+            <span class="key-hint-item"><span class="kbd">R</span> Reset</span>
+          </div>
+        </section>
+      </aside>
+    </main>
+  </div>
+
+  <script type="module" src="../dist/games/tetris/main.js"></script>
+</body>
+</html>

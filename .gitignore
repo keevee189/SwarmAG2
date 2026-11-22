@@ -1,0 +1,6 @@
+node_modules/
+dist/
+dist-test/
+dist-test-*/
+.server.pid
+server.log

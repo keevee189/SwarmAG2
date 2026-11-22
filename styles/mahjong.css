@@ -1,0 +1,447 @@
+/* ==========================================================================
+   NEXUS ARCADE — Mahjong Solitaire ("Imperial Tile Dynasty")
+   3D Ivory & Jade Beveled Tiles, Responsive Auto-Fit Stage & HUD
+   ========================================================================== */
+
+.mahjong-body .arcade-topbar {
+  padding: 8px 24px;
+}
+
+.mahjong-shell {
+  width: min(1360px, 95vw);
+  margin: 10px auto 14px;
+  grid-template-columns: minmax(0, 1fr) 348px;
+  gap: 16px;
+}
+
+.mahjong-stage {
+  padding: 12px 16px 12px;
+  gap: 8px;
+  min-height: 0;
+  background:
+    radial-gradient(circle at 50% 45%, rgba(16, 185, 129, 0.08), transparent 65%),
+    var(--bg-card);
+}
+
+.mahjong-sidebar {
+  gap: 9px;
+}
+
+.mahjong-sidebar .hud-card,
+.mahjong-sidebar .predictor-card {
+  padding: 11px 13px;
+}
+
+.mahjong-sidebar .hud-card-title {
+  margin-bottom: 6px;
+  font-size: 0.72rem;
+}
+
+/* Status Banner Match Pill */
+.match-pill {
+  flex-shrink: 0;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--neon-emerald);
+  background: rgba(16, 185, 129, 0.14);
+  border: 1px solid rgba(16, 185, 129, 0.36);
+}
+
+/* Stage Board Frame & Responsive Auto-Fit Viewport */
+.mahjong-stage-frame {
+  position: relative;
+  width: 100%;
+  min-height: 360px;
+  height: clamp(360px, calc(100vh - 210px), 620px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  border-radius: var(--radius-lg);
+  background:
+    radial-gradient(ellipse at center, rgba(14, 52, 42, 0.55) 0%, rgba(7, 13, 28, 0.85) 75%),
+    #060b16;
+  border: 1px solid rgba(16, 185, 129, 0.24);
+  box-shadow: inset 0 0 42px rgba(0, 0, 0, 0.65);
+  overflow: hidden;
+}
+
+.mahjong-board-viewport {
+  position: relative;
+  flex-shrink: 0;
+  width: calc(var(--board-w, 846px) * var(--board-scale, 1));
+  height: calc(var(--board-h, 616px) * var(--board-scale, 1));
+}
+
+.mahjong-board {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--board-w, 846px);
+  height: var(--board-h, 616px);
+  transform: scale(var(--board-scale, 1));
+  transform-origin: top left;
+}
+
+/* ==========================================================================
+   3D Layered Ivory / Jade Beveled Tile Buttons
+   ========================================================================== */
+
+.mahjong-tile {
+  position: absolute;
+  width: 54px;
+  height: 72px;
+  padding: 3px;
+  border-radius: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  background: linear-gradient(155deg, #fffdf7 0%, #f6eed8 62%, #e9dcbe 100%);
+  box-shadow:
+    inset 1px 1px 0 rgba(255, 255, 255, 0.96),
+    inset -1px -1px 0 rgba(180, 158, 114, 0.45),
+    1.5px 1.5px 0 #267b61,
+    3px 3px 0 #185b47,
+    4.5px 5px 0 #0d3a2d,
+    6px 9px 14px rgba(0, 0, 0, 0.52);
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition:
+    transform 130ms cubic-bezier(0.22, 1, 0.36, 1),
+    filter 160ms ease,
+    box-shadow 160ms ease,
+    border-color 160ms ease;
+}
+
+.mahjong-tile::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: 6px;
+  border: 1px solid rgba(160, 138, 96, 0.22);
+  pointer-events: none;
+}
+
+.mahjong-tile:focus-visible {
+  outline: 2px solid var(--neon-cyan);
+  outline-offset: 2px;
+}
+
+/* Free Tile State */
+.mahjong-tile[data-free='true']:hover {
+  transform: translate(-2px, -3px);
+  border-color: var(--neon-cyan);
+  box-shadow:
+    inset 1px 1px 0 rgba(255, 255, 255, 1),
+    0 0 0 1.5px rgba(0, 245, 255, 0.72),
+    2px 2px 0 #267b61,
+    4px 4px 0 #185b47,
+    6px 7px 0 #0d3a2d,
+    0 8px 18px rgba(0, 245, 255, 0.32);
+}
+
+/* Blocked Tile State */
+.mahjong-tile[data-free='false'] {
+  cursor: not-allowed;
+  background: linear-gradient(155deg, #c2c8d3 0%, #a5afbf 62%, #8c97a9 100%);
+  border-color: rgba(215, 224, 238, 0.55);
+  filter: brightness(0.76) saturate(0.7);
+  box-shadow:
+    inset 1px 1px 0 rgba(255, 255, 255, 0.4),
+    1.5px 1.5px 0 #1b4d3f,
+    3px 3px 0 #12382e,
+    4.5px 4.5px 0 #0a241d,
+    5px 7px 11px rgba(0, 0, 0, 0.45);
+}
+
+/* Highlight Free Mode */
+.mahjong-board[data-highlight-free='true'] .mahjong-tile[data-free='true'] {
+  border-color: #34d399;
+  box-shadow:
+    inset 1px 1px 0 #ffffff,
+    0 0 0 2px #10b981,
+    0 0 14px rgba(16, 185, 129, 0.65),
+    1.5px 1.5px 0 #267b61,
+    3px 3px 0 #185b47,
+    4.5px 5px 0 #0d3a2d;
+}
+
+.mahjong-board[data-highlight-free='true'] .mahjong-tile[data-free='false'] {
+  filter: brightness(0.5) saturate(0.45);
+}
+
+/* Selected Tile State */
+.mahjong-tile[data-selected='true'],
+.mahjong-tile[data-selected='true']:hover {
+  transform: translate(-3px, -5px) scale(1.04);
+  border-color: var(--neon-cyan);
+  filter: brightness(1.06);
+  box-shadow:
+    inset 1px 1px 0 #ffffff,
+    0 0 0 2.5px var(--neon-cyan),
+    0 0 22px rgba(0, 245, 255, 0.85),
+    2px 2px 0 #267b61,
+    4px 4px 0 #185b47,
+    6px 7px 0 #0d3a2d;
+}
+
+/* Hinted Pair State */
+.mahjong-tile[data-hint='true'] {
+  border-color: var(--neon-gold);
+  animation: mahjongHintPulse 950ms ease-in-out infinite;
+}
+
+@keyframes mahjongHintPulse {
+  0%, 100% {
+    transform: translate(-1px, -2px);
+    box-shadow:
+      0 0 0 2.5px var(--neon-gold),
+      0 0 18px rgba(251, 191, 36, 0.8),
+      1.5px 1.5px 0 #267b61,
+      3px 3px 0 #185b47,
+      4.5px 5px 0 #0d3a2d;
+  }
+  50% {
+    transform: translate(-2px, -4px) scale(1.03);
+    box-shadow:
+      0 0 0 3px var(--neon-magenta),
+      0 0 24px rgba(255, 43, 214, 0.9),
+      2px 2px 0 #267b61,
+      4px 4px 0 #185b47,
+      6px 7px 0 #0d3a2d;
+  }
+}
+
+/* Mismatch Feedback Shake */
+.mahjong-tile[data-mismatch='true'] {
+  border-color: var(--neon-crimson);
+  box-shadow:
+    0 0 0 2.5px var(--neon-crimson),
+    0 0 20px rgba(251, 113, 133, 0.85),
+    1.5px 1.5px 0 #267b61,
+    3px 3px 0 #185b47;
+  animation: mahjongTileShake 320ms ease-in-out;
+}
+
+@keyframes mahjongTileShake {
+  0%, 100% { transform: translateX(0); }
+  22% { transform: translateX(-4px); }
+  45% { transform: translateX(4px); }
+  70% { transform: translateX(-3px); }
+  88% { transform: translateX(2px); }
+}
+
+/* Crisp Vector Artwork Inside Each Tile */
+.tile-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+}
+
+.tile-corner-pip {
+  position: absolute;
+  top: 2px;
+  left: 4px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: #1e293b;
+  opacity: 0.78;
+  pointer-events: none;
+}
+
+.mahjong-tile[data-suit='character'] .tile-corner-pip { color: #991b1b; }
+.mahjong-tile[data-suit='bamboo'] .tile-corner-pip { color: #065f46; }
+.mahjong-tile[data-suit='circle'] .tile-corner-pip { color: #1e3a8a; }
+.mahjong-tile[data-suit='wind'] .tile-corner-pip { color: #1e1b4b; }
+.mahjong-tile[data-suit='dragon'] .tile-corner-pip { color: #9f1239; }
+.mahjong-tile[data-suit='season'] .tile-corner-pip { color: #b45309; }
+.mahjong-tile[data-suit='flower'] .tile-corner-pip { color: #9d174d; }
+
+/* Stage Legend & Overlay Card */
+.stage-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px 18px;
+  font-size: 0.76rem;
+  color: var(--text-secondary);
+}
+
+.legend-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.swatch {
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  border-radius: 3px;
+}
+
+.swatch.is-free {
+  background: #faf4e2;
+  border: 1px solid #10b981;
+}
+
+.swatch.is-blocked {
+  background: #8c97a9;
+  border: 1px solid #64748b;
+}
+
+.swatch.is-selected {
+  background: #00f5ff;
+  box-shadow: 0 0 8px rgba(0, 245, 255, 0.7);
+}
+
+.swatch.is-hint {
+  background: #fbbf24;
+  box-shadow: 0 0 8px rgba(251, 191, 36, 0.7);
+}
+
+.mahjong-overlay-card {
+  max-width: 420px;
+}
+
+.overlay-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--neon-emerald);
+  margin-bottom: 6px;
+}
+
+.overlay-heading {
+  margin: 0 0 8px;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  letter-spacing: 0.06em;
+  color: var(--text-primary);
+}
+
+.overlay-copy {
+  margin: 0 0 18px;
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.overlay-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+/* Sidebar Controls & Layout Picker */
+.mahjong-controls-card {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.tactical-actions .btn,
+.primary-actions .btn {
+  padding-top: 7px;
+  padding-bottom: 7px;
+}
+
+.highlight-row .btn {
+  width: 100%;
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+.layout-picker-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.layout-picker-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.mahjong-sidebar .segmented-control button {
+  padding: 6px 6px;
+  font-size: 0.74rem;
+  white-space: nowrap;
+}
+
+.mahjong-sidebar .stat-grid {
+  gap: 7px;
+}
+
+.mahjong-sidebar .stat-item {
+  padding: 6px 9px;
+  gap: 2px;
+}
+
+.mahjong-sidebar .stat-value {
+  font-size: 1.12rem;
+}
+
+.mahjong-sidebar .predictor-header {
+  margin-bottom: 6px;
+}
+
+.mahjong-sidebar .predictor-meta {
+  margin-top: 6px;
+}
+
+.forecast-pct {
+  font-size: 1.1rem;
+}
+
+.mahjong-sidebar .predictor-text {
+  margin-top: 4px;
+  font-size: 0.77rem;
+  line-height: 1.32;
+}
+
+.mahjong-sidebar .key-hints {
+  gap: 5px 10px;
+  font-size: 0.73rem;
+}
+
+/* Responsive Breakpoints */
+@media (max-width: 1024px) {
+  .mahjong-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .mahjong-stage-frame {
+    height: clamp(320px, 60vh, 560px);
+  }
+}
+
+@media (max-width: 680px) {
+  .mahjong-stage-frame {
+    height: clamp(260px, 52vh, 420px);
+    padding: 6px;
+  }
+
+  .stage-legend {
+    font-size: 0.7rem;
+    gap: 6px 12px;
+  }
+}

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IMPERIAL TILE DYNASTY — Mahjong Solitaire | NEXUS ARCADE</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23060812'/%3E%3Crect x='14' y='12' width='36' height='42' rx='7' fill='%23faf5e8' stroke='%2310b981' stroke-width='3'/%3E%3Ccircle cx='32' cy='33' r='10' fill='none' stroke='%2310b981' stroke-width='3'/%3E%3Ccircle cx='32' cy='33' r='3.5' fill='%23fbbf24'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="../styles/theme.css" />
+  <link rel="stylesheet" href="../styles/mahjong.css" />
+</head>
+<body class="mahjong-body">
+  <div class="arcade-page">
+    <header class="arcade-topbar">
+      <div class="topbar-left">
+        <a class="arcade-back-link" href="../index.html">← Back to Arcade</a>
+        <h1 class="topbar-title">MAHJONG SOLITAIRE</h1>
+        <span class="game-badge is-emerald">IMPERIAL TILE DYNASTY</span>
+      </div>
+
+      <div class="topbar-right">
+        <button type="button" class="btn btn-ghost btn-sm" data-mute-toggle aria-pressed="false">
+          <span data-mute-icon aria-hidden="true">🔊</span>
+          <span data-mute-label>Sound On</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="game-shell mahjong-shell">
+      <section class="game-stage mahjong-stage" aria-label="Mahjong Solitaire Board Stage">
+        <div class="status-banner is-info" id="status-banner" role="status" aria-live="polite">
+          <span id="status-text">Ready — Press Start or Enter to begin your Imperial Dynasty.</span>
+          <span class="match-pill" id="last-match-badge">SOLVABLE DEAL</span>
+        </div>
+
+        <div class="mahjong-stage-frame" id="stage-frame">
+          <div class="mahjong-board-viewport" id="board-viewport">
+            <div
+              class="mahjong-board"
+              id="mahjong-board"
+              role="grid"
+              aria-label="Mahjong Solitaire Tile Pyramid"
+              data-highlight-free="false"
+            ></div>
+          </div>
+
+          <div class="game-overlay" id="stage-overlay">
+            <div class="overlay-card mahjong-overlay-card">
+              <div class="overlay-eyebrow" id="overlay-eyebrow">CONSTRUCTIVE SOLVABLE DEAL</div>
+              <h2 class="overlay-heading" id="overlay-title">IMPERIAL TILE DYNASTY</h2>
+              <p class="overlay-copy" id="overlay-message">
+                Match pairs of free tiles (uncovered on top with either left or right edge open).
+                Any Season matches any Season, and any Flower matches any Flower.
+              </p>
+              <div class="overlay-actions">
+                <button type="button" class="btn btn-primary" id="overlay-primary-btn">
+                  Start Dynasty
+                </button>
+                <button type="button" class="btn btn-ghost" id="overlay-secondary-btn" hidden>
+                  Undo Last Move
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stage-legend" aria-hidden="true">
+          <span class="legend-chip"><i class="swatch is-free"></i> Free Tile</span>
+          <span class="legend-chip"><i class="swatch is-blocked"></i> Blocked Tile</span>
+          <span class="legend-chip"><i class="swatch is-selected"></i> Selected</span>
+          <span class="legend-chip"><i class="swatch is-hint"></i> Hint Pair</span>
+          <span class="legend-chip">Seasons &amp; Flowers match within their suit</span>
+        </div>
+      </section>
+
+      <aside class="game-sidebar mahjong-sidebar" aria-label="Controls and Telemetry">
+        <section class="hud-card mahjong-controls-card">
+          <h2 class="hud-card-title">Command Deck</h2>
+
+          <div class="controls-row primary-actions">
+            <button type="button" class="btn btn-primary" id="start-btn">Start</button>
+            <button type="button" class="btn btn-ghost" id="reset-btn">Reset</button>
+          </div>
+
+          <div class="controls-row tactical-actions">
+            <button type="button" class="btn btn-secondary btn-sm" id="hint-btn" title="Shortcut: H">
+              Hint
+            </button>
+            <button type="button" class="btn btn-ghost btn-sm" id="undo-btn" title="Shortcut: U or Z">
+              Undo
+            </button>
+            <button type="button" class="btn btn-ghost btn-sm" id="shuffle-btn" title="Shortcut: S">
+              Shuffle
+            </button>
+          </div>
+
+          <div class="controls-row highlight-row">
+            <button
+              type="button"
+              class="btn btn-ghost btn-sm"
+              id="highlight-btn"
+              aria-pressed="false"
+              title="Shortcut: F"
+            >
+              Highlight Free: OFF
+            </button>
+          </div>
+
+          <div class="layout-picker-wrap">
+            <div class="layout-picker-label">Board Formation</div>
+            <div class="segmented-control" id="layout-selector" role="group" aria-label="Board Layout">
+              <button
+                type="button"
+                id="layout-turtle-btn"
+                data-layout="turtle"
+                class="is-active"
+                aria-pressed="true"
+              >
+                Classic Turtle (144)
+              </button>
+              <button
+                type="button"
+                id="layout-dragon-btn"
+                data-layout="dragon"
+                aria-pressed="false"
+              >
+                Quick Dragon (72)
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <section class="hud-card">
+          <h2 class="hud-card-title">Dynasty Telemetry</h2>
+          <div class="stat-grid">
+            <div class="stat-item">
+              <span class="stat-value is-cyan" id="score-value">0</span>
+              <span class="stat-label">Score</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value is-gold" id="high-score-value">0</span>
+              <span class="stat-label">Best Score</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value" id="tiles-left-value">144</span>
+              <span class="stat-label">Tiles Left</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value is-emerald" id="pairs-available-value">0</span>
+              <span class="stat-label">Open Pairs</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value is-magenta" id="combo-value">0x</span>
+              <span class="stat-label">Combo Streak</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value" id="timer-value">00:00</span>
+              <span class="stat-label">Timer</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="predictor-card" aria-label="Win Forecast and Solvability Outlook">
+          <div class="predictor-header">
+            <h2 class="predictor-title">Solvability Outlook</h2>
+            <span class="stat-value is-emerald forecast-pct" id="forecast-percent">85%</span>
+          </div>
+          <div class="predictor-bar" aria-hidden="true">
+            <div class="predictor-fill is-emerald" id="forecast-bar" style="width: 85%"></div>
+          </div>
+          <div class="predictor-meta">
+            <span id="forecast-label">HIGH CHANCE</span>
+            <span id="forecast-meta-layers">5 LAYERS</span>
+          </div>
+          <p class="predictor-text" id="forecast-detail">
+            Analyzing board depth and open pairs...
+          </p>
+        </section>
+
+        <section class="hud-card">
+          <h2 class="hud-card-title">Keyboard Shortcuts</h2>
+          <div class="key-hints">
+            <span class="key-hint-item"><span class="kbd">Enter</span> Start</span>
+            <span class="key-hint-item"><span class="kbd">R</span> Reset</span>
+            <span class="key-hint-item"><span class="kbd">H</span> Hint</span>
+            <span class="key-hint-item"><span class="kbd">U</span>/<span class="kbd">Z</span> Undo</span>
+            <span class="key-hint-item"><span class="kbd">S</span> Shuffle</span>
+            <span class="key-hint-item"><span class="kbd">F</span> Free</span>
+            <span class="key-hint-item"><span class="kbd">Esc</span> Deselect</span>
+          </div>
+        </section>
+      </aside>
+    </main>
+  </div>
+
+  <script type="module" src="../dist/games/mahjong/main.js"></script>
+</body>
+</html>

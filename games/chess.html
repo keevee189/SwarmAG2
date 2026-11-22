@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CHESS — Grandmaster Protocol | Nexus Arcade</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23060812'/%3E%3Cpath d='M16 48h32v6H16zM20 44l4-20 8 8 8-8 4 20z' fill='none' stroke='%2300f5ff' stroke-width='3.5' stroke-linejoin='round'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="../styles/theme.css" />
+  <link rel="stylesheet" href="../styles/chess.css" />
+</head>
+<body class="chess-body">
+  <div class="arcade-page">
+    <header class="arcade-topbar">
+      <div class="topbar-left">
+        <a class="arcade-back-link" href="../index.html">← Back to Arcade</a>
+        <h1 class="topbar-title">CHESS</h1>
+        <span class="game-badge is-violet">Grandmaster Protocol</span>
+      </div>
+      <div class="topbar-right">
+        <button type="button" class="btn btn-ghost btn-sm" data-mute-toggle aria-pressed="false">
+          <span data-mute-icon aria-hidden="true">🔊</span>
+          <span data-mute-label>Sound On</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="game-shell chess-shell">
+      <!-- Primary Tactical Stage -->
+      <section class="game-stage chess-stage" aria-label="Chess Board Arena">
+        <div class="status-banner is-info" id="status-banner" role="status" aria-live="polite">
+          <span id="status-text">READY — PRESS START TO ENGAGE</span>
+          <span class="turn-pill" id="turn-badge">WHITE READY</span>
+        </div>
+
+        <!-- Opponent Bar (Black AI) -->
+        <div class="player-strip is-black" aria-label="Black AI Status">
+          <div class="player-identity">
+            <span class="player-swatch is-black" aria-hidden="true"></span>
+            <span class="player-name">BLACK // NEXUS AI</span>
+            <span class="player-tier-tag" id="ai-tier-badge">CLUB</span>
+          </div>
+          <div class="captured-tray" id="black-captured" aria-label="Pieces captured by Black"></div>
+          <div class="player-material">
+            <span class="material-label">MAT</span>
+            <span class="material-val" id="black-material">39</span>
+          </div>
+        </div>
+
+        <!-- 8x8 Board + Rank/File Coordinates + Promotion Modal -->
+        <div class="chess-board-frame">
+          <div class="board-rank-axis" aria-hidden="true">
+            <span>8</span><span>7</span><span>6</span><span>5</span>
+            <span>4</span><span>3</span><span>2</span><span>1</span>
+          </div>
+
+          <div
+            class="chess-board"
+            id="chess-board"
+            role="grid"
+            aria-label="8 by 8 Chess Board"
+          ></div>
+
+          <div class="board-corner-spacer" aria-hidden="true"></div>
+
+          <div class="board-file-axis" aria-hidden="true">
+            <span>a</span><span>b</span><span>c</span><span>d</span>
+            <span>e</span><span>f</span><span>g</span><span>h</span>
+          </div>
+
+          <!-- Pawn Promotion Modal -->
+          <div
+            class="game-overlay promotion-overlay"
+            id="promotion-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="promotion-title"
+            hidden
+          >
+            <div class="overlay-card promotion-card">
+              <h2 class="promotion-title" id="promotion-title">PROMOTE PAWN</h2>
+              <p class="promotion-subtitle">Select upgrade unit (<span class="kbd">Q</span> <span class="kbd">R</span> <span class="kbd">B</span> <span class="kbd">N</span>)</p>
+              <div class="promotion-choices" id="promotion-choices">
+                <button type="button" class="promo-btn" data-promo="q" aria-label="Promote to Queen"></button>
+                <button type="button" class="promo-btn" data-promo="r" aria-label="Promote to Rook"></button>
+                <button type="button" class="promo-btn" data-promo="b" aria-label="Promote to Bishop"></button>
+                <button type="button" class="promo-btn" data-promo="n" aria-label="Promote to Knight"></button>
+              </div>
+              <button type="button" class="btn btn-ghost btn-sm" id="promo-cancel-btn">Cancel (Esc)</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Player Bar (White Human) -->
+        <div class="player-strip is-white" aria-label="White Player Status">
+          <div class="player-identity">
+            <span class="player-swatch is-white" aria-hidden="true"></span>
+            <span class="player-name">WHITE // COMMANDER</span>
+            <span class="player-tier-tag is-human">HUMAN</span>
+          </div>
+          <div class="captured-tray" id="white-captured" aria-label="Pieces captured by White"></div>
+          <div class="player-material">
+            <span class="material-label">MAT</span>
+            <span class="material-val" id="white-material">39</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tactical Sidebar -->
+      <aside class="game-sidebar chess-sidebar" aria-label="Chess Controls and Telemetry">
+        <!-- Controls & Difficulty -->
+        <section class="hud-card">
+          <h2 class="hud-card-title">Protocol Controls</h2>
+          <div class="controls-row chess-controls-grid">
+            <button type="button" class="btn btn-primary" id="start-btn">Start</button>
+            <button type="button" class="btn btn-danger" id="reset-btn">Reset</button>
+            <button type="button" class="btn btn-ghost" id="undo-btn" disabled>Undo</button>
+            <button type="button" class="btn btn-secondary" id="hint-btn" disabled>Hint</button>
+          </div>
+
+          <div class="difficulty-block">
+            <span class="stat-label">AI Difficulty</span>
+            <div class="segmented-control" id="difficulty-selector" role="group" aria-label="AI Difficulty">
+              <button type="button" data-difficulty="novice" aria-pressed="false">Novice</button>
+              <button type="button" class="is-active" data-difficulty="club" aria-pressed="true">Club</button>
+              <button type="button" data-difficulty="master" aria-pressed="false">Master</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Evaluation & Predicted Winner -->
+        <section class="predictor-card" aria-label="Evaluation and Predicted Winner">
+          <div class="predictor-header">
+            <h2 class="predictor-title">Evaluation &amp; Predictor</h2>
+            <span class="eval-badge" id="eval-score-label">+0.0</span>
+          </div>
+
+          <div class="predictor-bar eval-meter-bar" role="progressbar" aria-label="White Win Probability" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50">
+            <div class="predictor-fill is-player" id="eval-bar-fill" style="width: 50%"></div>
+          </div>
+
+          <div class="predictor-meta">
+            <span id="white-win-pct">White 50%</span>
+            <span id="black-win-pct">Black 50%</span>
+          </div>
+
+          <p class="predictor-text" id="predicted-winner-label">Even / Draw Likely</p>
+          <p class="predictor-detail" id="predicted-detail">Material balanced</p>
+        </section>
+
+        <!-- Scoreboard HUD -->
+        <section class="hud-card">
+          <h2 class="hud-card-title">Match Scoreboard</h2>
+          <div class="stat-grid chess-stat-grid">
+            <div class="stat-item">
+              <span class="stat-value is-cyan" id="material-diff">0</span>
+              <span class="stat-label">Mat Diff (W)</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value is-emerald" id="session-wins">0</span>
+              <span class="stat-label">Wins</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value is-gold" id="session-draws">0</span>
+              <span class="stat-label">Draws</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value is-magenta" id="session-losses">0</span>
+              <span class="stat-label">Losses</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Algebraic Move History -->
+        <section class="hud-card move-history-card">
+          <div class="move-history-header">
+            <h2 class="hud-card-title">Move History</h2>
+            <span class="move-count-tag" id="move-count-label">0 plies</span>
+          </div>
+          <ol class="move-list" id="move-list" aria-label="Algebraic Move History"></ol>
+        </section>
+
+        <!-- Keyboard Shortcuts -->
+        <section class="hud-card">
+          <h2 class="hud-card-title">Keyboard Controls</h2>
+          <div class="key-hints">
+            <span class="key-hint-item"><span class="kbd">↑↓←→</span> Cursor</span>
+            <span class="key-hint-item"><span class="kbd">Enter</span>/<span class="kbd">Space</span> Select</span>
+            <span class="key-hint-item"><span class="kbd">S</span> Start</span>
+            <span class="key-hint-item"><span class="kbd">R</span> Reset</span>
+            <span class="key-hint-item"><span class="kbd">U</span> Undo</span>
+            <span class="key-hint-item"><span class="kbd">H</span> Hint</span>
+            <span class="key-hint-item"><span class="kbd">Esc</span> Clear</span>
+          </div>
+        </section>
+      </aside>
+    </main>
+  </div>
+
+  <script type="module" src="../dist/games/chess/main.js"></script>
+</body>
+</html>
