@@ -1034,4 +1034,175 @@ describe('QA: NEXUS ARCADE Landing Page Browser Verification (CDP)', () => {
       { width: 1440, height: 900 },
     );
   });
+
+  it('opens and closes the friendly Rules popup across all 6 games, blocks background game keys while open, and auto-pauses Tetris', async () => {
+    const gameChecks: Array<{
+      id: string;
+      path: string;
+      expectedTitle: string;
+      expectedSnippet: RegExp;
+    }> = [
+      {
+        id: 'game2048',
+        path: 'games/game2048.html',
+        expectedTitle: 'HYPER 2048',
+        expectedSnippet: /single-merge|2048/i,
+      },
+      {
+        id: 'minesweeper',
+        path: 'games/minesweeper.html',
+        expectedTitle: 'QUANTUM MINESWEEPER',
+        expectedSnippet: /first click|Chording/i,
+      },
+      {
+        id: 'tetris',
+        path: 'games/tetris.html',
+        expectedTitle: 'TETROMINO OVERDRIVE',
+        expectedSnippet: /Ghost Piece|HOLD/i,
+      },
+      {
+        id: 'tictactoe',
+        path: 'games/tictactoe.html',
+        expectedTitle: 'NEURAL GRID DUEL',
+        expectedSnippet: /3×3|Minimax/i,
+      },
+      {
+        id: 'chess',
+        path: 'games/chess.html',
+        expectedTitle: 'GRANDMASTER PROTOCOL',
+        expectedSnippet: /Castling|Checkmate/i,
+      },
+      {
+        id: 'mahjong',
+        path: 'games/mahjong.html',
+        expectedTitle: 'IMPERIAL TILE DYNASTY',
+        expectedSnippet: /FREE|Season/i,
+      },
+    ];
+
+    for (const check of gameChecks) {
+      await withBrowserPage(
+        `${baseUrl}${check.path}`,
+        async (page) => {
+          // 1. Rules button exists in topbar and modal is initially closed
+          const initial = await page.evaluate<{
+            hasBtn: boolean;
+            toggleAttr: string | null;
+            expanded: string | null;
+            modalOpen: boolean;
+          }>(`({
+            hasBtn: Boolean(document.getElementById('rules-btn')),
+            toggleAttr: document.getElementById('rules-btn')?.getAttribute('data-rules-toggle') ?? null,
+            expanded: document.getElementById('rules-btn')?.getAttribute('aria-expanded') ?? null,
+            modalOpen: Boolean(document.getElementById('arcade-rules-modal') && !document.getElementById('arcade-rules-modal').hidden),
+          })`);
+          assert.equal(initial.hasBtn, true, `Missing #rules-btn on ${check.path}`);
+          assert.equal(initial.toggleAttr, check.id);
+          assert.equal(initial.expanded, 'false');
+          assert.equal(initial.modalOpen, false);
+
+          // 2. Click #rules-btn -> opens friendly rules popup with Goal, How to Play, Tips, Controls
+          await page.click('#rules-btn');
+          await page.waitFor(
+            "document.getElementById('arcade-rules-modal')?.getAttribute('data-open') === 'true' && !document.getElementById('arcade-rules-modal').hidden",
+          );
+
+          const modalSnap = await page.evaluate<{
+            title: string;
+            goal: string;
+            howCount: number;
+            howText: string;
+            tipsCount: number;
+            controlsCount: number;
+            expanded: string | null;
+          }>(`({
+            title: (document.getElementById('rules-modal-title')?.textContent ?? '').trim(),
+            goal: (document.getElementById('rules-goal-text')?.textContent ?? '').trim(),
+            howCount: document.querySelectorAll('#rules-how-list li').length,
+            howText: (document.getElementById('rules-how-list')?.textContent ?? '').trim(),
+            tipsCount: document.querySelectorAll('#rules-tips-list li').length,
+            controlsCount: document.querySelectorAll('#rules-controls-grid .rules-control-row').length,
+            expanded: document.getElementById('rules-btn')?.getAttribute('aria-expanded') ?? null,
+          })`);
+
+          assert.equal(modalSnap.title, check.expectedTitle);
+          assert.ok(modalSnap.goal.length > 25);
+          assert.ok(modalSnap.howCount >= 4);
+          assert.match(modalSnap.howText, check.expectedSnippet);
+          assert.ok(modalSnap.tipsCount >= 2);
+          assert.ok(modalSnap.controlsCount >= 4);
+          assert.equal(modalSnap.expanded, 'true');
+
+          // 3. Click "Got It — Let's Play!" (#rules-got-it-btn) -> closes modal
+          await page.click('#rules-got-it-btn');
+          await page.waitFor(
+            "document.getElementById('arcade-rules-modal')?.getAttribute('data-open') === 'false' && document.getElementById('arcade-rules-modal').hidden",
+          );
+
+          // 4. Press '?' shortcut -> opens modal; press 'Escape' -> closes modal
+          await page.pressKey('?');
+          await page.waitFor(
+            "document.getElementById('arcade-rules-modal')?.getAttribute('data-open') === 'true'",
+          );
+          await page.pressKey('Escape');
+          await page.waitFor(
+            "document.getElementById('arcade-rules-modal')?.getAttribute('data-open') === 'false'",
+          );
+
+          // 5. Game-specific safety checks while modal is open:
+          if (check.id === 'game2048') {
+            await page.click('#start-btn');
+            const movesBefore = await page.evaluate<string>(
+              "(document.getElementById('moves-value')?.textContent ?? '').trim()",
+            );
+            await page.click('#rules-btn');
+            await page.waitFor(
+              "document.getElementById('arcade-rules-modal')?.getAttribute('data-open') === 'true'",
+            );
+            // Pressing ArrowLeft/ArrowDown while Rules is open must NOT move tiles
+            await page.pressKey('ArrowLeft');
+            await page.pressKey('ArrowDown');
+            const movesDuring = await page.evaluate<string>(
+              "(document.getElementById('moves-value')?.textContent ?? '').trim()",
+            );
+            assert.equal(movesDuring, movesBefore, '2048 moves changed while Rules modal was open');
+            await page.click('#rules-close-btn');
+            await page.waitFor(
+              "document.getElementById('arcade-rules-modal')?.getAttribute('data-open') === 'false'",
+            );
+          }
+
+          if (check.id === 'tetris') {
+            await page.click('#start-btn');
+            await page.waitFor(
+              "(document.getElementById('pause-btn')?.textContent ?? '').trim() === 'Pause'",
+            );
+            // Opening rules while playing Tetris auto-pauses the game
+            await page.click('#rules-btn');
+            await page.waitFor(
+              "document.getElementById('arcade-rules-modal')?.getAttribute('data-open') === 'true'",
+            );
+            const pausedLabel = await page.evaluate<string>(
+              "(document.getElementById('status-tag')?.textContent ?? '').trim()",
+            );
+            assert.equal(pausedLabel, 'PAUSED');
+            // Closing rules automatically resumes Tetris
+            await page.click('#rules-got-it-btn');
+            await page.waitFor(
+              "document.getElementById('arcade-rules-modal')?.getAttribute('data-open') === 'false'",
+            );
+            const resumedBtnText = await page.evaluate<string>(
+              "(document.getElementById('pause-btn')?.textContent ?? '').trim()",
+            );
+            assert.equal(resumedBtnText, 'Pause');
+          }
+
+          assert.deepEqual(page.pageErrors, []);
+          assert.deepEqual(page.consoleErrors, []);
+          assert.deepEqual(page.failedRequests, []);
+        },
+        { width: 1440, height: 900 },
+      );
+    }
+  });
 });

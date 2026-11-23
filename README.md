@@ -57,6 +57,7 @@ Direct game URLs:
 | `1`–`6` | Launch Tetris (`1`), Tic-Tac-Toe (`2`), Chess (`3`), Mahjong (`4`), Minesweeper (`5`), or 2048 (`6`) directly |
 | `Esc` | Clear active card focus |
 | Sound Toggle (`🔊` / `🔇`) | Mute or unmute synthesized Web Audio SFX across the arcade |
+| `? Rules` (`#rules-btn` / `?` key) | On any game page, opens a friendly popup with that game's goal, step-by-step rules, tips, and controls (`Esc` or `Got It — Let's Play!` to close) |
 
 ### Tetris — *TETROMINO OVERDRIVE* (`games/tetris.html`)
 - **Cabinet Controls**: **Start** (`#start-btn`), **Pause** (`#pause-btn`), **Reset** (`#reset-btn`), plus on-screen touch/mouse buttons (Left, Right, Down, Rotate CCW, Rotate CW, Hard Drop, Hold).

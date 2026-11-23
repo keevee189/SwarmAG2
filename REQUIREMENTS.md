@@ -46,7 +46,7 @@
 
 ## 3. Shared Game Standards (All 6 Games)
 Every game page in `games/` implements:
-1. **Shared Topbar & Navigation**: Sticky `.arcade-topbar` with Back to Arcade link (`../index.html`), game badge, and `[data-mute-toggle]` sound button wired via `initArcadeHeader()`.
+1. **Shared Topbar, Rules Popup & Navigation**: Sticky `.arcade-topbar` with Back to Arcade link (`../index.html`), game badge, **`? Rules` button** (`#rules-btn[data-rules-toggle]`), and `[data-mute-toggle]` sound button wired via `initArcadeHeader()`. Clicking `#rules-btn` (or pressing `?` / `F1`) opens the accessible `#arcade-rules-modal` popup displaying the game's friendly plain-English goal (`#rules-goal-text`), step-by-step How to Play guide (`#rules-how-list`), Friendly Tips (`#rules-tips-list`), and Controls (`#rules-controls-grid`). While open, capture-phase key handling isolates background game input, and Tetris automatically pauses/resumes if opened mid-run.
 2. **Essential Controls**: Explicit **Start** and **Reset** buttons alongside game-specific actions (Pause, Undo, Hint, Shuffle, Difficulty/Layout selectors).
 3. **Live Score & Match Telemetry**: `.hud-card` showing real-time Score, High Score / Session Stats, Timer (`formatTime()`), and domain-specific counters.
 4. **Live Predicted Winner / Outcome Forecast**: `.predictor-card` with `.predictor-bar` / `.predictor-fill` and dynamic search/heuristic forecast updating on moves and game ticks.

@@ -2,7 +2,18 @@ import assert from 'node:assert/strict';
 import http from 'node:http';
 import { after, before, describe, it } from 'node:test';
 import { createAppServer, resolveDefaultRootDir } from '../ts/server.js';
-import { ArcadeAudio, clamp, formatTime, initArcadeHeader } from '../ts/shared/arcade.js';
+import {
+  ArcadeAudio,
+  ArcadeGameId,
+  clamp,
+  closeRulesModal,
+  formatTime,
+  GAME_RULES,
+  getGameRules,
+  initArcadeHeader,
+  isRulesModalOpen,
+  openRulesModal,
+} from '../ts/shared/arcade.js';
 import { withBrowserPage } from './helpers/cdp.js';
 
 function rawRequest(
@@ -80,6 +91,37 @@ describe('ts/shared/arcade.ts utilities', () => {
     } finally {
       ArcadeAudio.setMuted(initial);
     }
+  });
+
+  it('provides friendly rules entries for all 6 games and safe modal no-ops in Node', () => {
+    const gameIds: ArcadeGameId[] = [
+      'tetris',
+      'tictactoe',
+      'chess',
+      'mahjong',
+      'minesweeper',
+      'game2048',
+    ];
+    for (const id of gameIds) {
+      const entry = getGameRules(id);
+      assert.ok(entry, `Missing rules entry for ${id}`);
+      assert.equal(entry.id, id);
+      assert.equal(entry, GAME_RULES[id]);
+      assert.ok(entry.title.length > 3);
+      assert.ok(entry.goal.length > 20);
+      assert.ok(entry.howToPlay.length >= 4, `Expected >= 4 howToPlay steps for ${id}`);
+      assert.ok(entry.tips.length >= 2, `Expected >= 2 tips for ${id}`);
+      assert.ok(entry.controls.length >= 4, `Expected >= 4 controls for ${id}`);
+    }
+    assert.equal(getGameRules('  GAME2048 '), GAME_RULES.game2048);
+    assert.equal(getGameRules('unknown-game'), null);
+    assert.equal(getGameRules(''), null);
+    assert.equal(getGameRules(null), null);
+
+    // Safe no-ops in Node where document is undefined
+    assert.equal(isRulesModalOpen(), false);
+    assert.equal(openRulesModal('game2048'), false);
+    assert.equal(closeRulesModal(), false);
   });
 });
 
