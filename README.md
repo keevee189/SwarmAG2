@@ -1,6 +1,6 @@
 # NEXUS ARCADE
 
-Welcome to **NEXUS ARCADE**, a sleek cyber-arcade gaming hub where you can jump straight into four classic games right in your browser: **Tetris**, **Tic-Tac-Toe**, **Chess**, and **Mahjong Solitaire**. Every cabinet features responsive controls, synthesized Web Audio sound effects, live scoreboards, smart AI opponents, and a real-time win/outcome predictor that forecasts how your match is progressing as you play.
+Welcome to **NEXUS ARCADE**, a sleek cyber-arcade gaming hub where you can jump straight into six classic games right in your browser: **Tetris**, **Tic-Tac-Toe**, **Chess**, **Mahjong Solitaire**, **Minesweeper**, and **2048**. Every cabinet features responsive controls, synthesized Web Audio sound effects, live scoreboards, smart AI opponents or logic solvers, and a real-time win/outcome predictor that forecasts how your match is progressing as you play.
 
 ---
 
@@ -41,6 +41,8 @@ Direct game URLs:
 - `http://localhost:4173/games/tictactoe.html` — Tic-Tac-Toe (*NEURAL GRID DUEL*)
 - `http://localhost:4173/games/chess.html` — Chess (*GRANDMASTER PROTOCOL*)
 - `http://localhost:4173/games/mahjong.html` — Mahjong Solitaire (*IMPERIAL TILE DYNASTY*)
+- `http://localhost:4173/games/minesweeper.html` — Minesweeper (*QUANTUM MINESWEEPER*)
+- `http://localhost:4173/games/game2048.html` — 2048 (*HYPER 2048*)
 
 ---
 
@@ -50,9 +52,9 @@ Direct game URLs:
 | Input | Action |
 | :--- | :--- |
 | Mouse Hover / Pointer | Activates 3D tilt, radial spotlight, rotating laser rim, live canvas preview, and dims sibling cards |
-| `←` `→` `↑` `↓` | Navigate across the 2×2 game cabinet grid (activates focused card) |
+| `←` `→` `↑` `↓` | Navigate across the 3×2 game cabinet grid (adapts dynamically to 2-col tablet and 1-col mobile) |
 | `Enter` / `Space` | Launch the currently focused game |
-| `1` `2` `3` `4` | Launch Tetris (`1`), Tic-Tac-Toe (`2`), Chess (`3`), or Mahjong (`4`) directly |
+| `1`–`6` | Launch Tetris (`1`), Tic-Tac-Toe (`2`), Chess (`3`), Mahjong (`4`), Minesweeper (`5`), or 2048 (`6`) directly |
 | `Esc` | Clear active card focus |
 | Sound Toggle (`🔊` / `🔇`) | Mute or unmute synthesized Web Audio SFX across the arcade |
 
@@ -113,3 +115,31 @@ Direct game URLs:
 | `Enter` | Start (when ready) |
 | `R` | Reset board |
 | `Esc` | Deselect active tile / clear hint |
+
+### Minesweeper — *QUANTUM MINESWEEPER* (`games/minesweeper.html`)
+- **Cabinet Controls**: **Start** (`#start-btn`), **Reset** (`#reset-btn`), **Hint** (`#hint-btn`), **Flag Mode** toggle (`#flag-mode-btn`), and Difficulty selector (`#difficulty-control` — **Beginner** `9×9 / 10 mines` default, **Intermediate** `12×12 / 22 mines`, **Expert** `16×16 / 40 mines`).
+- **Live Telemetry**: Score, High Score (`localStorage`), Mines Left, Safe Left, Elapsed Time, and **Deduction Outlook / Win Forecast** (`#forecast-label`, `#forecast-percent`, `#forecast-detail`).
+
+| Key / Input | Action |
+| :--- | :--- |
+| Left Click / Tap | Reveal cell (or chord when clicking a satisfied numbered cell; places flag when Flag Mode is active) |
+| Right Click | Toggle Flag on unrevealed cell |
+| `←` `→` `↑` `↓` | Move cursor across the mine grid |
+| `Enter` / `Space` | Reveal cell at cursor |
+| `F` | Toggle Flag at cursor |
+| `C` | Chord neighbors around cursor |
+| `H` | Trigger Frontier Deduction Hint |
+| `S` | Start / restart sweep |
+| `R` | Reset board |
+
+### 2048 — *HYPER 2048* (`games/game2048.html`)
+- **Cabinet Controls**: **Start** (`#start-btn`), **Reset** (`#reset-btn`), **Undo** (`#undo-btn`), **Hint** (`#hint-btn`), **Continue Endless** (`#continue-btn` / `#overlay-continue-btn`), Mode selector (`#mode-control` — **Classic (2048)** / **Endless**), and on-screen directional D-pad (`#btn-up`, `#btn-down`, `#btn-left`, `#btn-right`).
+- **Live Telemetry**: Score, High Score (`localStorage`), Best Tile, Moves, Merge Streak, and **2048 Win Forecast / Board Health** (`#forecast-label`, `#forecast-percent`, `#forecast-detail`).
+
+| Key / Input | Action |
+| :--- | :--- |
+| `↑` `↓` `←` `→` / `W` `A` `S` `D` / Swipe | Slide & merge tiles |
+| `H` | Show 2-ply Expectimax Best-Move Hint (`#hint-direction-badge`) |
+| `U` / `Z` | Undo last move |
+| `Enter` | Start new game |
+| `R` | Reset grid |

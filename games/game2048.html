@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HYPER 2048 — Merge Matrix | Nexus Arcade</title>
+  <link
+    rel="icon"
+    type="image/svg+xml"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23060812'/%3E%3Crect x='10' y='10' width='20' height='20' rx='5' fill='%2300f5ff' fill-opacity='0.24' stroke='%2300f5ff' stroke-width='2.5'/%3E%3Crect x='34' y='10' width='20' height='20' rx='5' fill='%23ff2bd6' fill-opacity='0.24' stroke='%23ff2bd6' stroke-width='2.5'/%3E%3Crect x='10' y='34' width='20' height='20' rx='5' fill='%23f97316' fill-opacity='0.28' stroke='%23f97316' stroke-width='2.5'/%3E%3Crect x='34' y='34' width='20' height='20' rx='5' fill='%23fbbf24' fill-opacity='0.34' stroke='%23fbbf24' stroke-width='2.5'/%3E%3C/svg%3E"
+  />
+  <link rel="stylesheet" href="../styles/theme.css" />
+  <link rel="stylesheet" href="../styles/game2048.css" />
+</head>
+<body class="game2048-body">
+  <div class="arcade-page">
+    <header class="arcade-topbar">
+      <div class="topbar-left">
+        <a class="arcade-back-link" href="../index.html">← Back to Arcade</a>
+        <h1 class="topbar-title">HYPER 2048</h1>
+        <span class="game-badge is-gold">2048 // MERGE MATRIX</span>
+      </div>
+      <div class="topbar-right">
+        <button type="button" class="btn btn-ghost btn-sm" data-mute-toggle aria-pressed="false">
+          <span data-mute-icon aria-hidden="true">🔊</span>
+          <span data-mute-label>Sound On</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="game-shell game2048-shell">
+      <section class="game-stage game2048-stage" aria-label="Hyper 2048 Playfield">
+        <div id="status-banner" class="status-banner is-active" role="status" aria-live="polite">
+          <span id="status-text">Merge matching plasma tiles to forge 2048 — swipe or use arrow keys.</span>
+          <span id="mode-pill" class="mode-pill">CLASSIC</span>
+        </div>
+
+        <div class="board2048-frame">
+          <div
+            id="grid-2048"
+            class="grid-2048"
+            role="grid"
+            tabindex="0"
+            aria-label="2048 4 by 4 playfield"
+          >
+            <div class="cell-2048" data-cell="0" data-row="0" data-col="0" data-value="0" role="gridcell"></div>
+            <div class="cell-2048" data-cell="1" data-row="0" data-col="1" data-value="0" role="gridcell"></div>
+            <div class="cell-2048" data-cell="2" data-row="0" data-col="2" data-value="0" role="gridcell"></div>
+            <div class="cell-2048" data-cell="3" data-row="0" data-col="3" data-value="0" role="gridcell"></div>
+            <div class="cell-2048" data-cell="4" data-row="1" data-col="0" data-value="0" role="gridcell"></div>
+            <div class="cell-2048" data-cell="5" data-row="1" data-col="1" data-value="0" role="gridcell"></div>
+            <div class="cell-2048" data-cell="6" data-row="1" data-col="2" data-value="0" role="gridcell"></div>
+            <div class="cell-2048" data-cell="7" data-row="1" data-col="3" data-value="0" role="gridcell"></div>
+            <div class="cell-2048" data-cell="8" data-row="2" data-col="0" data-value="0" role="gridcell"></div>
+            <div class="cell-2048" data-cell="9" data-row="2" data-col="1" data-value="0" role="gridcell"></div>
+            <div class="cell-2048" data-cell="10" data-row="2" data-col="2" data-value="0" role="gridcell"></div>
+            <div class="cell-2048" data-cell="11" data-row="2" data-col="3" data-value="0" role="gridcell"></div>
+            <div class="cell-2048" data-cell="12" data-row="3" data-col="0" data-value="0" role="gridcell"></div>
+            <div class="cell-2048" data-cell="13" data-row="3" data-col="1" data-value="0" role="gridcell"></div>
+            <div class="cell-2048" data-cell="14" data-row="3" data-col="2" data-value="0" role="gridcell"></div>
+            <div class="cell-2048" data-cell="15" data-row="3" data-col="3" data-value="0" role="gridcell"></div>
+          </div>
+
+          <div id="game-overlay" class="game-overlay" role="dialog" aria-modal="true" aria-labelledby="overlay-title" hidden>
+            <div class="overlay-card game2048-overlay-card">
+              <div id="overlay-kicker" class="overlay-kicker">VICTORY MILESTONE</div>
+              <h2 id="overlay-title" class="overlay-title">2048 FORGED!</h2>
+              <p id="overlay-subtitle" class="overlay-subtitle">
+                Keep climbing past 2048 in Endless mode, or launch a fresh grid.
+              </p>
+              <div class="overlay-actions">
+                <button type="button" id="overlay-continue-btn" class="btn btn-primary">
+                  Continue Endless
+                </button>
+                <button type="button" id="overlay-reset-btn" class="btn btn-secondary">
+                  New Game
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dpad-panel" aria-label="Directional Slide Controls">
+          <div class="hint-badge-row">
+            <span id="hint-direction-badge" class="hint-direction-badge" aria-live="polite" hidden>
+              EXPECTIMAX: —
+            </span>
+          </div>
+          <div class="dpad-cross">
+            <button type="button" id="btn-up" class="btn btn-ghost dpad-btn dpad-up" data-dir="up" aria-label="Slide Up" title="Slide Up (ArrowUp / W)">
+              ▲ Up
+            </button>
+            <button type="button" id="btn-left" class="btn btn-ghost dpad-btn dpad-left" data-dir="left" aria-label="Slide Left" title="Slide Left (ArrowLeft / A)">
+              ◀ Left
+            </button>
+            <button type="button" id="btn-down" class="btn btn-ghost dpad-btn dpad-down" data-dir="down" aria-label="Slide Down" title="Slide Down (ArrowDown / S)">
+              ▼ Down
+            </button>
+            <button type="button" id="btn-right" class="btn btn-ghost dpad-btn dpad-right" data-dir="right" aria-label="Slide Right" title="Slide Right (ArrowRight / D)">
+              Right ▶
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <aside class="game-sidebar game2048-sidebar" aria-label="Controls and Telemetry">
+        <section class="hud-card">
+          <h2 class="hud-card-title">Matrix Controls</h2>
+          <div class="controls-grid-2048">
+            <button type="button" id="start-btn" class="btn btn-primary btn-sm">Start</button>
+            <button type="button" id="reset-btn" class="btn btn-ghost btn-sm">Reset</button>
+            <button type="button" id="undo-btn" class="btn btn-ghost btn-sm" disabled title="Undo Last Move (U / Z)">Undo</button>
+            <button type="button" id="hint-btn" class="btn btn-secondary btn-sm" title="Expectimax Best Move (H)">Hint</button>
+          </div>
+
+          <button type="button" id="continue-btn" class="btn btn-primary btn-sm continue-endless-btn" hidden>
+            Continue Endless →
+          </button>
+
+          <div class="mode-block">
+            <span class="stat-label">Game Mode</span>
+            <div id="mode-control" class="segmented-control" role="group" aria-label="Game Mode">
+              <button type="button" data-mode="classic" class="is-active" aria-pressed="true">
+                Classic (2048)
+              </button>
+              <button type="button" data-mode="endless" aria-pressed="false">
+                Endless
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <section class="hud-card">
+          <h2 class="hud-card-title">Scoreboard Telemetry</h2>
+          <div class="stat-grid stat-grid-2048">
+            <div class="stat-item">
+              <span class="stat-label">Score</span>
+              <span id="score-value" class="stat-value is-cyan">0</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">High Score</span>
+              <span id="high-score-value" class="stat-value is-gold">0</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Best Tile</span>
+              <span id="best-tile-value" class="stat-value is-magenta">2</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Moves</span>
+              <span id="moves-value" class="stat-value">0</span>
+            </div>
+            <div class="stat-item stat-item-wide">
+              <span class="stat-label">Merge Streak</span>
+              <span id="merge-streak-value" class="stat-value is-emerald">0x</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="predictor-card" aria-label="2048 Win Forecast and Board Health">
+          <div class="predictor-header">
+            <h2 class="predictor-title">2048 Win Forecast</h2>
+            <span id="forecast-percent" class="forecast-percent">72%</span>
+          </div>
+          <div class="predictor-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="72">
+            <div id="forecast-fill" class="predictor-fill is-cyan" style="width: 72%;"></div>
+          </div>
+          <div class="predictor-meta">
+            <span id="forecast-label" class="forecast-label">STRONG FLOW</span>
+            <span>TARGET: 2048</span>
+          </div>
+          <p id="forecast-detail" class="predictor-text">
+            Analyzing empty space, corner anchor, and snake gradient...
+          </p>
+        </section>
+
+        <section class="hud-card">
+          <h2 class="hud-card-title">Keyboard Shortcuts</h2>
+          <div class="key-hints key-hints-2048">
+            <span class="key-hint-item"><span class="kbd">↑</span><span class="kbd">↓</span><span class="kbd">←</span><span class="kbd">→</span> / <span class="kbd">WASD</span> Slide</span>
+            <span class="key-hint-item"><span class="kbd">H</span> Expectimax Hint</span>
+            <span class="key-hint-item"><span class="kbd">U</span> / <span class="kbd">Z</span> Undo</span>
+            <span class="key-hint-item"><span class="kbd">Enter</span> Start</span>
+            <span class="key-hint-item"><span class="kbd">R</span> Reset</span>
+          </div>
+        </section>
+      </aside>
+    </main>
+  </div>
+
+  <script type="module" src="../dist/games/game2048/main.js"></script>
+</body>
+</html>

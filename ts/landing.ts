@@ -1,6 +1,6 @@
 import { ArcadeAudio, initArcadeHeader } from './shared/arcade.js';
 
-type GameKind = 'tetris' | 'tictactoe' | 'chess' | 'mahjong';
+type GameKind = 'tetris' | 'tictactoe' | 'chess' | 'mahjong' | 'minesweeper' | 'game2048';
 
 interface BackdropStar {
   x: number;
@@ -16,6 +16,8 @@ class LandingHubController {
   private readonly canvases: Map<GameKind, HTMLCanvasElement> = new Map();
   private hoveredIndex: number | null = null;
   private focusedIndex: number | null = null;
+  private suppressHoverUntilMove = false;
+  private lastPointerPos: { x: number; y: number } | null = null;
   private rafId: number | null = null;
   private startTs = performance.now();
 
@@ -63,28 +65,70 @@ class LandingHubController {
     });
   }
 
+  private hasPointerMovedSinceLast(clientX: number, clientY: number, movementX = 0, movementY = 0): boolean {
+    if (!this.lastPointerPos) {
+      return movementX !== 0 || movementY !== 0;
+    }
+    return (
+      Math.abs(clientX - this.lastPointerPos.x) > 0.5 ||
+      Math.abs(clientY - this.lastPointerPos.y) > 0.5
+    );
+  }
+
   private bindCardEvents(): void {
+    const onGlobalPointerDown = (ev: MouseEvent): void => {
+      this.lastPointerPos = { x: ev.clientX, y: ev.clientY };
+      this.suppressHoverUntilMove = false;
+    };
+    const onGlobalPointerMove = (ev: MouseEvent): void => {
+      const moved = this.hasPointerMovedSinceLast(
+        ev.clientX,
+        ev.clientY,
+        ev.movementX,
+        ev.movementY,
+      );
+      if (!this.suppressHoverUntilMove || moved) {
+        this.suppressHoverUntilMove = false;
+        this.lastPointerPos = { x: ev.clientX, y: ev.clientY };
+      }
+    };
+    window.addEventListener('pointerdown', onGlobalPointerDown, { capture: true });
+    window.addEventListener('mousedown', onGlobalPointerDown, { capture: true });
+    window.addEventListener('pointermove', onGlobalPointerMove, { capture: true });
+    window.addEventListener('mousemove', onGlobalPointerMove, { capture: true });
+
     this.cards.forEach((card, idx) => {
-      card.addEventListener('pointerenter', () => {
+      const handleEnter = (ev: MouseEvent, playAudio: boolean): void => {
+        if (this.suppressHoverUntilMove) {
+          if (!this.hasPointerMovedSinceLast(ev.clientX, ev.clientY)) {
+            return;
+          }
+          this.suppressHoverUntilMove = false;
+          this.lastPointerPos = { x: ev.clientX, y: ev.clientY };
+        }
+        const changed = this.hoveredIndex !== idx;
         this.hoveredIndex = idx;
         this.syncCardStates();
-        ArcadeAudio.playMove();
-      });
+        if (playAudio && changed) {
+          ArcadeAudio.playMove();
+        }
+      };
 
-      card.addEventListener('mouseenter', () => {
+      const handleMove = (ev: MouseEvent): void => {
+        if (this.suppressHoverUntilMove) {
+          return;
+        }
         if (this.hoveredIndex !== idx) {
           this.hoveredIndex = idx;
           this.syncCardStates();
         }
-      });
-
-      card.addEventListener('pointermove', (ev: PointerEvent) => {
         this.updateTiltAndSpotlight(card, ev.clientX, ev.clientY);
-      });
+      };
 
-      card.addEventListener('mousemove', (ev: MouseEvent) => {
-        this.updateTiltAndSpotlight(card, ev.clientX, ev.clientY);
-      });
+      card.addEventListener('pointerenter', (ev: PointerEvent) => handleEnter(ev, true));
+      card.addEventListener('mouseenter', (ev: MouseEvent) => handleEnter(ev, false));
+      card.addEventListener('pointermove', (ev: PointerEvent) => handleMove(ev));
+      card.addEventListener('mousemove', (ev: MouseEvent) => handleMove(ev));
 
       card.addEventListener('pointerleave', () => {
         if (this.hoveredIndex === idx) {
@@ -135,13 +179,25 @@ class LandingHubController {
     card.style.setProperty('--spot-y', `${spotY}%`);
   }
 
+  private getGridColumnCount(): number {
+    const grid = document.getElementById('game-grid');
+    if (!grid) {
+      return 1;
+    }
+    const raw = getComputedStyle(grid).gridTemplateColumns.trim();
+    if (!raw || raw === 'none') {
+      return 1;
+    }
+    return Math.max(1, raw.split(/\s+/).length);
+  }
+
   private bindKeyboardNavigation(): void {
     window.addEventListener('keydown', (ev: KeyboardEvent) => {
       if (ev.metaKey || ev.ctrlKey || ev.altKey) {
         return;
       }
 
-      if (ev.key >= '1' && ev.key <= '4') {
+      if (ev.key >= '1' && ev.key <= '6') {
         const target = this.cards[Number(ev.key) - 1];
         if (target) {
           ev.preventDefault();
@@ -153,6 +209,7 @@ class LandingHubController {
       }
 
       if (ev.key === 'Escape') {
+        this.suppressHoverUntilMove = true;
         this.hoveredIndex = null;
         this.focusedIndex = null;
         const active = document.activeElement;
@@ -163,19 +220,35 @@ class LandingHubController {
         return;
       }
 
-      const arrowDeltas: Record<string, number> = {
-        ArrowLeft: -1,
-        ArrowRight: 1,
-        ArrowUp: -2,
-        ArrowDown: 2,
-      };
-      if (ev.key in arrowDeltas) {
+      const key = ev.key;
+      if (
+        key === 'ArrowLeft' ||
+        key === 'ArrowRight' ||
+        key === 'ArrowUp' ||
+        key === 'ArrowDown'
+      ) {
+        if (this.cards.length === 0) {
+          return;
+        }
         ev.preventDefault();
-        const current = this.focusedIndex ?? this.hoveredIndex;
+        const cols = this.getGridColumnCount();
+        const arrowDeltas: Record<'ArrowLeft' | 'ArrowRight' | 'ArrowUp' | 'ArrowDown', number> = {
+          ArrowLeft: -1,
+          ArrowRight: 1,
+          ArrowUp: -cols,
+          ArrowDown: cols,
+        };
+        const activeElIdx =
+          document.activeElement instanceof HTMLAnchorElement
+            ? this.cards.indexOf(document.activeElement)
+            : -1;
+        const current =
+          this.focusedIndex ?? this.hoveredIndex ?? (activeElIdx >= 0 ? activeElIdx : null);
         const nextIdx =
           current === null
             ? 0
-            : (current + arrowDeltas[ev.key] + this.cards.length) % this.cards.length;
+            : (current + arrowDeltas[key] + this.cards.length) % this.cards.length;
+        this.suppressHoverUntilMove = true;
         this.hoveredIndex = null;
         this.focusedIndex = nextIdx;
         this.cards[nextIdx]?.focus();
@@ -240,9 +313,11 @@ class LandingHubController {
   }
 
   private renderPreviews(elapsedSec: number): void {
-    (['tetris', 'tictactoe', 'chess', 'mahjong'] as GameKind[]).forEach((kind) => {
-      this.renderCardPreview(kind, elapsedSec);
-    });
+    (['tetris', 'tictactoe', 'chess', 'mahjong', 'minesweeper', 'game2048'] as GameKind[]).forEach(
+      (kind) => {
+        this.renderCardPreview(kind, elapsedSec);
+      },
+    );
   }
 
   private renderBackdrop(t: number): void {
@@ -311,8 +386,12 @@ class LandingHubController {
       this.drawTicTacToePreview(ctx, w, h, t);
     } else if (kind === 'chess') {
       this.drawChessPreview(ctx, w, h, t);
-    } else {
+    } else if (kind === 'mahjong') {
       this.drawMahjongPreview(ctx, w, h, t);
+    } else if (kind === 'minesweeper') {
+      this.drawMinesweeperPreview(ctx, w, h, t);
+    } else {
+      this.draw2048Preview(ctx, w, h, t);
     }
   }
 
@@ -558,6 +637,283 @@ class LandingHubController {
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(tile.sym, tx + tw / 2, ty + th / 2);
+    }
+    ctx.shadowBlur = 0;
+  }
+
+  private drawMinesweeperPreview(ctx: CanvasRenderingContext2D, w: number, h: number, t: number): void {
+    const dim = Math.min(w, h);
+    const pad = dim * 0.095;
+    const board = dim - pad * 2;
+    const rows = 8;
+    const cell = board / rows;
+    const cx = pad + board * 0.5;
+    const cy = pad + board * 0.5;
+
+    // -1 = mine, 0 = safe blank, 1..3 = adjacent mine count
+    const gridValues: number[][] = [
+      [1, -1, 1, 0, 1, 1, 1, 0],
+      [2, 3, 2, 0, 1, -1, 1, 0],
+      [1, -1, 1, 0, 1, 1, 1, 0],
+      [1, 1, 1, 0, 0, 1, 1, 1],
+      [1, 1, 0, 0, 0, 1, -1, 1],
+      [-1, 1, 0, 1, 1, 2, 1, 1],
+      [1, 1, 0, 1, -1, 1, 1, 1],
+      [0, 0, 0, 1, 1, 1, 1, -1],
+    ];
+
+    const numColors: Record<number, string> = {
+      1: '#00f5ff',
+      2: '#22c55e',
+      3: '#fbbf24',
+    };
+
+    const cycle = t % 4.6;
+    const waveRadius = Math.min(5.8, cycle * 2.1);
+
+    for (let r = 0; r < rows; r += 1) {
+      for (let c = 0; c < rows; c += 1) {
+        const x = pad + c * cell + 2;
+        const y = pad + r * cell + 2;
+        const size = cell - 4;
+        const dist = Math.hypot(r - 3.5, c - 3.5);
+        const val = gridValues[r][c];
+        const revealed = dist <= waveRadius;
+
+        if (revealed && val >= 0) {
+          const frontier = Math.max(0, 1 - Math.abs(dist - waveRadius) / 0.9);
+          ctx.fillStyle = `rgba(12, 26, 22, ${(0.72 + frontier * 0.22).toFixed(2)})`;
+          ctx.strokeStyle = `rgba(34, 197, 94, ${(0.28 + frontier * 0.55).toFixed(2)})`;
+          ctx.lineWidth = 1.5;
+          ctx.fillRect(x, y, size, size);
+          ctx.strokeRect(x, y, size, size);
+
+          if (val > 0) {
+            const color = numColors[val] ?? '#22c55e';
+            ctx.fillStyle = color;
+            ctx.shadowColor = color;
+            ctx.shadowBlur = 10 + 4 * Math.sin(t * 4 + r + c);
+            ctx.font = `900 ${Math.round(cell * 0.5)}px monospace`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(String(val), x + size / 2, y + size / 2 + 1);
+            ctx.shadowBlur = 0;
+          }
+        } else {
+          const breath = 0.14 + 0.08 * Math.sin(t * 2.6 + (r + c) * 0.45);
+          ctx.fillStyle = `rgba(22, 35, 52, 0.85)`;
+          ctx.strokeStyle = `rgba(34, 197, 94, ${breath.toFixed(3)})`;
+          ctx.lineWidth = 1.5;
+          ctx.fillRect(x, y, size, size);
+          ctx.strokeRect(x, y, size, size);
+
+          if (val === -1 && dist <= waveRadius + 0.6) {
+            // Neon triangular radar flag on detected mine
+            const fx = x + size * 0.36;
+            const fy = y + size * 0.24;
+            ctx.strokeStyle = '#e2e8f0';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(fx, fy);
+            ctx.lineTo(fx, y + size * 0.78);
+            ctx.stroke();
+
+            ctx.fillStyle = '#fbbf24';
+            ctx.shadowColor = '#fbbf24';
+            ctx.shadowBlur = 12 + 5 * Math.sin(t * 6);
+            ctx.beginPath();
+            ctx.moveTo(fx, fy);
+            ctx.lineTo(x + size * 0.76, fy + size * 0.17);
+            ctx.lineTo(fx, fy + size * 0.34);
+            ctx.closePath();
+            ctx.fill();
+            ctx.shadowBlur = 0;
+          }
+        }
+      }
+    }
+
+    // Expanding sonar ring + rotating radar scan sweep
+    const ringProgress = (t * 0.55) % 1;
+    const ringRadius = Math.max(8, ringProgress * board * 0.56);
+    ctx.strokeStyle = `rgba(34, 197, 94, ${((1 - ringProgress) * 0.55).toFixed(3)})`;
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.arc(cx, cy, ringRadius, 0, Math.PI * 2);
+    ctx.stroke();
+
+    const scanAngle = t * 1.9;
+    const sweepEndX = cx + Math.cos(scanAngle) * (board * 0.48);
+    const sweepEndY = cy + Math.sin(scanAngle) * (board * 0.48);
+    ctx.strokeStyle = 'rgba(251, 191, 36, 0.65)';
+    ctx.shadowColor = '#22c55e';
+    ctx.shadowBlur = 14;
+    ctx.lineWidth = 2.4;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(sweepEndX, sweepEndY);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+  }
+
+  private fillStrokeRoundRect(
+    ctx: CanvasRenderingContext2D,
+    x: number,
+    y: number,
+    w: number,
+    h: number,
+    r: number,
+  ): void {
+    const rad = Math.min(r, w / 2, h / 2);
+    ctx.beginPath();
+    ctx.moveTo(x + rad, y);
+    ctx.lineTo(x + w - rad, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + rad);
+    ctx.lineTo(x + w, y + h - rad);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - rad, y + h);
+    ctx.lineTo(x + rad, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - rad);
+    ctx.lineTo(x, y + rad);
+    ctx.quadraticCurveTo(x, y, x + rad, y);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+  }
+
+  private draw2048Preview(ctx: CanvasRenderingContext2D, w: number, h: number, t: number): void {
+    const dim = Math.min(w, h);
+    const pad = dim * 0.1;
+    const board = dim - pad * 2;
+    const gap = board * 0.048;
+    const tileSize = (board - gap * 5) / 4;
+
+    // Outer frame & 4x4 recessed grid slots
+    ctx.fillStyle = 'rgba(15, 22, 42, 0.72)';
+    ctx.strokeStyle = 'rgba(249, 115, 22, 0.28)';
+    ctx.lineWidth = 2;
+    this.fillStrokeRoundRect(ctx, pad, pad, board, board, 18);
+
+    const cellPos = (row: number, col: number): { x: number; y: number } => ({
+      x: pad + gap + col * (tileSize + gap),
+      y: pad + gap + row * (tileSize + gap),
+    });
+
+    for (let r = 0; r < 4; r += 1) {
+      for (let c = 0; c < 4; c += 1) {
+        const pos = cellPos(r, c);
+        ctx.fillStyle = 'rgba(6, 10, 22, 0.72)';
+        ctx.strokeStyle = 'rgba(148, 163, 184, 0.14)';
+        ctx.lineWidth = 1.5;
+        this.fillStrokeRoundRect(ctx, pos.x, pos.y, tileSize, tileSize, 10);
+      }
+    }
+
+    const tilePalette: Record<number, { fill: string; stroke: string; text: string }> = {
+      2: { fill: 'rgba(251, 146, 60, 0.18)', stroke: '#fdba74', text: '#ffedd5' },
+      4: { fill: 'rgba(249, 115, 22, 0.24)', stroke: '#fb923c', text: '#fed7aa' },
+      8: { fill: 'rgba(251, 113, 133, 0.26)', stroke: '#fb7185', text: '#ffe4e6' },
+      16: { fill: 'rgba(244, 63, 94, 0.30)', stroke: '#f43f5e', text: '#fecdd3' },
+      128: { fill: 'rgba(249, 115, 22, 0.34)', stroke: '#f97316', text: '#fff7ed' },
+      256: { fill: 'rgba(234, 88, 12, 0.36)', stroke: '#fb923c', text: '#fef3c7' },
+      512: { fill: 'rgba(251, 113, 133, 0.36)', stroke: '#fb7185', text: '#fff1f2' },
+      1024: { fill: 'rgba(245, 158, 11, 0.36)', stroke: '#f59e0b', text: '#fef9c3' },
+      2048: { fill: 'rgba(251, 191, 36, 0.40)', stroke: '#fbbf24', text: '#fef08a' },
+    };
+
+    const renderTile = (row: number, col: number, value: number, scale = 1): void => {
+      const base = cellPos(row, col);
+      const pal = tilePalette[value] ?? tilePalette[2048];
+      const scaled = tileSize * scale;
+      const dx = base.x + (tileSize - scaled) / 2;
+      const dy = base.y + (tileSize - scaled) / 2;
+
+      ctx.fillStyle = pal.fill;
+      ctx.strokeStyle = pal.stroke;
+      ctx.shadowColor = pal.stroke;
+      ctx.shadowBlur = 12 + 5 * Math.sin(t * 3.8 + row + col);
+      ctx.lineWidth = 2.5;
+      this.fillStrokeRoundRect(ctx, dx, dy, scaled, scaled, 10);
+
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = pal.text;
+      const fontRatio = value >= 1024 ? 0.27 : value >= 128 ? 0.33 : 0.42;
+      ctx.font = `900 ${Math.round(tileSize * fontRatio)}px monospace`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(String(value), dx + scaled / 2, dy + scaled / 2 + 1);
+    };
+
+    const drawShockwave = (row: number, col: number, progress: number, color: string): void => {
+      if (progress <= 0 || progress >= 1) {
+        return;
+      }
+      const pos = cellPos(row, col);
+      const cx = pos.x + tileSize / 2;
+      const cy = pos.y + tileSize / 2;
+      const radius = tileSize * (0.45 + progress * 0.72);
+      ctx.strokeStyle = color;
+      ctx.globalAlpha = (1 - progress) * 0.85;
+      ctx.lineWidth = 3.5 * (1 - progress * 0.5);
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    };
+
+    // Static anchor high-value tiles with subtle glow breathing
+    renderTile(0, 0, 2048, 1 + 0.02 * Math.sin(t * 3.2));
+    renderTile(0, 1, 512);
+    renderTile(0, 2, 128);
+    renderTile(1, 0, 256);
+
+    // 4-beat cascading merge animation: 2+2->4, 4+4->8, 8+8->16, 1024+1024->2048
+    const cycle = t % 4.8;
+    const phase = Math.floor(cycle / 1.2);
+    const localT = (cycle % 1.2) / 1.2;
+    const moveProg = Math.min(1, localT / 0.52);
+    const easedMove = 1 - Math.pow(1 - moveProg, 3);
+    const mergeProg = localT >= 0.52 ? (localT - 0.52) / 0.48 : 0;
+    const mergePop = mergeProg > 0 ? 1 + 0.14 * Math.sin(mergeProg * Math.PI) : 1;
+
+    if (phase === 0) {
+      if (localT < 0.52) {
+        renderTile(3, 0, 2);
+        renderTile(3, 2 - 2 * easedMove, 2);
+      } else {
+        renderTile(3, 0, 4, mergePop);
+        drawShockwave(3, 0, mergeProg, '#fb923c');
+      }
+      renderTile(2, 0, 8);
+      renderTile(0, 3, 1024);
+    } else if (phase === 1) {
+      if (localT < 0.52) {
+        renderTile(3, 0, 4);
+        renderTile(3, 3 - 3 * easedMove, 4);
+      } else {
+        renderTile(3, 0, 8, mergePop);
+        drawShockwave(3, 0, mergeProg, '#fb7185');
+      }
+      renderTile(2, 0, 8);
+      renderTile(0, 3, 1024);
+    } else if (phase === 2) {
+      if (localT < 0.52) {
+        renderTile(2, 0, 8);
+        renderTile(3 - easedMove, 0, 8);
+      } else {
+        renderTile(2, 0, 16, mergePop);
+        drawShockwave(2, 0, mergeProg, '#f43f5e');
+      }
+      renderTile(0, 3, 1024);
+    } else {
+      renderTile(2, 0, 16);
+      if (localT < 0.52) {
+        renderTile(0, 3, 1024);
+        renderTile(2 - 2 * easedMove, 3, 1024);
+      } else {
+        renderTile(0, 3, 2048, mergePop);
+        drawShockwave(0, 3, mergeProg, '#fbbf24');
+        drawShockwave(0, 3, Math.max(0, mergeProg - 0.18), '#f97316');
+      }
     }
     ctx.shadowBlur = 0;
   }

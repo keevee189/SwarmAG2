@@ -35,7 +35,7 @@
       <div class="header-hud">
         <div class="header-status-pill">
           <span class="status-dot" aria-hidden="true"></span>
-          <span>4 CABINETS ONLINE</span>
+          <span>6 CABINETS ONLINE</span>
         </div>
         <button type="button" class="btn btn-ghost btn-sm" data-mute-toggle aria-pressed="false">
           <span data-mute-icon aria-hidden="true">🔊</span>
@@ -49,7 +49,7 @@
         <p class="hero-tagline">
           Select a cabinet to ignite live telemetry. Navigate with mouse,
           <span class="kbd">↑</span> <span class="kbd">↓</span> <span class="kbd">←</span> <span class="kbd">→</span>,
-          or press <span class="kbd">1</span>–<span class="kbd">4</span>.
+          or press <span class="kbd">1</span>–<span class="kbd">6</span>.
         </p>
       </section>
 
@@ -230,6 +230,99 @@
                 <span class="telemetry-pill">144 TILES</span>
                 <span class="telemetry-pill">SOLVABLE DEAL</span>
                 <span class="telemetry-pill">WIN FORECAST</span>
+              </div>
+              <div class="card-play-badge">PLAY NOW →</div>
+            </div>
+          </div>
+        </a>
+
+        <!-- Card 5: Minesweeper -->
+        <a
+          class="game-card card-minesweeper"
+          href="games/minesweeper.html"
+          data-game="minesweeper"
+          data-index="4"
+          data-active="false"
+          data-dimmed="false"
+        >
+          <span class="card-laser-border" aria-hidden="true"></span>
+          <span class="card-spotlight" aria-hidden="true"></span>
+          <canvas class="card-preview-canvas" width="520" height="520" aria-hidden="true"></canvas>
+
+          <div class="card-inner">
+            <div class="card-top-bar">
+              <span class="card-slot-tag">05 // LOGIC GRID</span>
+              <span class="card-key-chip">KEY 5</span>
+            </div>
+
+            <div class="card-center">
+              <div class="card-icon" aria-hidden="true">
+                <svg viewBox="0 0 120 120" width="96" height="96" fill="none">
+                  <circle cx="60" cy="60" r="42" stroke="rgba(34,197,94,0.35)" stroke-width="2.2" stroke-dasharray="6 5" />
+                  <circle cx="60" cy="60" r="28" stroke="rgba(34,197,94,0.55)" stroke-width="2" />
+                  <path d="M60 14V32M60 88V106M14 60H32M88 60H106" stroke="#22c55e" stroke-width="3.2" stroke-linecap="round" />
+                  <path d="M27.5 27.5L40 40M80 80L92.5 92.5M92.5 27.5L80 40M40 80L27.5 92.5" stroke="#fbbf24" stroke-width="3" stroke-linecap="round" />
+                  <circle cx="60" cy="60" r="18" fill="rgba(34,197,94,0.22)" stroke="#22c55e" stroke-width="3.2" />
+                  <circle cx="60" cy="60" r="7" fill="#fbbf24" />
+                  <circle cx="54" cy="54" r="3" fill="#ffffff" opacity="0.85" />
+                </svg>
+              </div>
+              <h2 class="card-name">MINESWEEPER</h2>
+              <div class="card-subtitle">QUANTUM MINESWEEPER</div>
+            </div>
+
+            <div class="card-active-hud">
+              <div class="card-telemetry">
+                <span class="telemetry-pill">SAFE FIRST CLICK</span>
+                <span class="telemetry-pill">SMART HINT</span>
+                <span class="telemetry-pill">WIN FORECAST</span>
+              </div>
+              <div class="card-play-badge">PLAY NOW →</div>
+            </div>
+          </div>
+        </a>
+
+        <!-- Card 6: 2048 -->
+        <a
+          class="game-card card-game2048"
+          href="games/game2048.html"
+          data-game="game2048"
+          data-index="5"
+          data-active="false"
+          data-dimmed="false"
+        >
+          <span class="card-laser-border" aria-hidden="true"></span>
+          <span class="card-spotlight" aria-hidden="true"></span>
+          <canvas class="card-preview-canvas" width="520" height="520" aria-hidden="true"></canvas>
+
+          <div class="card-inner">
+            <div class="card-top-bar">
+              <span class="card-slot-tag">06 // MERGE PUZZLE</span>
+              <span class="card-key-chip">KEY 6</span>
+            </div>
+
+            <div class="card-center">
+              <div class="card-icon" aria-hidden="true">
+                <svg viewBox="0 0 120 120" width="96" height="96" fill="none">
+                  <rect x="18" y="18" width="38" height="38" rx="8" fill="rgba(249,115,22,0.16)" stroke="#fb923c" stroke-width="2.8" />
+                  <rect x="64" y="18" width="38" height="38" rx="8" fill="rgba(251,113,133,0.18)" stroke="#fb7185" stroke-width="2.8" />
+                  <rect x="18" y="64" width="38" height="38" rx="8" fill="rgba(249,115,22,0.28)" stroke="#f97316" stroke-width="2.8" />
+                  <rect x="64" y="64" width="38" height="38" rx="8" fill="rgba(251,191,36,0.26)" stroke="#fbbf24" stroke-width="3.2" />
+                  <text x="37" y="42" text-anchor="middle" fill="#fed7aa" font-family="monospace, sans-serif" font-size="16" font-weight="900">2</text>
+                  <text x="83" y="42" text-anchor="middle" fill="#fecdd3" font-family="monospace, sans-serif" font-size="16" font-weight="900">4</text>
+                  <text x="37" y="88" text-anchor="middle" fill="#fdba74" font-family="monospace, sans-serif" font-size="16" font-weight="900">8</text>
+                  <text x="83" y="87" text-anchor="middle" fill="#fef08a" font-family="monospace, sans-serif" font-size="11.5" font-weight="900">2048</text>
+                </svg>
+              </div>
+              <h2 class="card-name">2048</h2>
+              <div class="card-subtitle">HYPER 2048</div>
+            </div>
+
+            <div class="card-active-hud">
+              <div class="card-telemetry">
+                <span class="telemetry-pill">EXPECTIMAX HINT</span>
+                <span class="telemetry-pill">UNDO STACK</span>
+                <span class="telemetry-pill">BOARD FORECAST</span>
               </div>
               <div class="card-play-badge">PLAY NOW →</div>
             </div>

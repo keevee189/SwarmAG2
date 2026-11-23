@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QUANTUM MINESWEEPER | NEXUS ARCADE</title>
+  <link
+    rel="icon"
+    type="image/svg+xml"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23060812'/%3E%3Ccircle cx='32' cy='32' r='13' fill='none' stroke='%2300f5ff' stroke-width='3.5'/%3E%3Cpath d='M32 10v10M32 44v10M10 32h10M44 32h10M16 16l7 7M41 41l7 7M48 16l-7 7M23 41l-7 7' stroke='%23ff2bd6' stroke-width='3.5' stroke-linecap='round'/%3E%3Ccircle cx='32' cy='32' r='4.5' fill='%23fb7185'/%3E%3C/svg%3E"
+  />
+  <link rel="stylesheet" href="../styles/theme.css" />
+  <link rel="stylesheet" href="../styles/minesweeper.css" />
+</head>
+<body class="minesweeper-body">
+  <div class="arcade-page">
+    <header class="arcade-topbar">
+      <div class="topbar-left">
+        <a class="arcade-back-link" href="../index.html">
+          <span aria-hidden="true">←</span>
+          <span>Back to Arcade</span>
+        </a>
+        <h1 class="topbar-title">QUANTUM MINESWEEPER</h1>
+        <span class="game-badge is-magenta">MINESWEEPER</span>
+      </div>
+
+      <div class="topbar-right">
+        <button type="button" class="btn btn-ghost btn-sm" data-mute-toggle aria-pressed="false">
+          <span data-mute-icon aria-hidden="true">🔊</span>
+          <span data-mute-label>Sound On</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="game-shell minesweeper-shell">
+      <section class="game-stage minesweeper-stage" aria-label="Quantum Minesweeper Arena">
+        <div class="status-banner is-info" id="status-banner" role="status" aria-live="polite">
+          <span id="status-text">Shielded first click ready. Press Start (S) or click any cell.</span>
+          <span class="mode-pill" id="mode-pill">STANDBY</span>
+        </div>
+
+        <div class="mine-board-wrap">
+          <div
+            class="mine-board-frame"
+            id="mine-board-frame"
+            data-difficulty="beginner"
+            data-status="idle"
+            data-flag-mode="false"
+          >
+            <div
+              class="mine-board"
+              id="mine-board"
+              role="grid"
+              aria-label="Quantum Minesweeper grid"
+            ></div>
+          </div>
+        </div>
+
+        <div class="mine-legend" aria-label="Tile Legend">
+          <span class="legend-chip"><i class="swatch is-unrevealed"></i> Sealed</span>
+          <span class="legend-chip"><i class="swatch is-flag"></i> Flagged (Right-Click / F)</span>
+          <span class="legend-chip"><i class="swatch is-chord"></i> Click Number to Chord (C)</span>
+          <span class="legend-chip"><i class="swatch is-hint"></i> Deduction Hint (H)</span>
+        </div>
+      </section>
+
+      <aside class="game-sidebar minesweeper-sidebar" aria-label="Controls and Telemetry">
+        <section class="hud-card minesweeper-controls-card" aria-label="Mission Controls">
+          <h2 class="hud-card-title">Sector Controls</h2>
+
+          <div class="controls-row">
+            <button type="button" id="start-btn" class="btn btn-primary btn-sm">Start</button>
+            <button type="button" id="reset-btn" class="btn btn-ghost btn-sm">Reset</button>
+            <button type="button" id="hint-btn" class="btn btn-secondary btn-sm" title="Shortcut: H">
+              Hint
+            </button>
+          </div>
+
+          <div class="controls-row flag-mode-row">
+            <button
+              type="button"
+              id="flag-mode-btn"
+              class="btn btn-ghost btn-sm"
+              aria-pressed="false"
+            >
+              <span class="flag-mode-dot" aria-hidden="true"></span>
+              <span id="flag-mode-label">Flag Mode: OFF</span>
+            </button>
+          </div>
+
+          <div class="control-group">
+            <span class="control-label">Grid Difficulty</span>
+            <div
+              class="segmented-control"
+              id="difficulty-control"
+              role="group"
+              aria-label="Difficulty Selector"
+            >
+              <button
+                type="button"
+                data-difficulty="beginner"
+                class="is-active"
+                aria-pressed="true"
+                title="9×9 grid / 10 mines"
+              >
+                9×9 (10)
+              </button>
+              <button
+                type="button"
+                data-difficulty="intermediate"
+                aria-pressed="false"
+                title="12×12 grid / 22 mines"
+              >
+                12×12 (22)
+              </button>
+              <button
+                type="button"
+                data-difficulty="expert"
+                aria-pressed="false"
+                title="16×16 grid / 40 mines"
+              >
+                16×16 (40)
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <section class="hud-card minesweeper-hud-card" aria-label="Scoreboard Telemetry">
+          <h2 class="hud-card-title">Sector Telemetry</h2>
+          <div class="stat-grid ms-stat-grid">
+            <div class="stat-item">
+              <span class="stat-value is-cyan" id="score-value">0</span>
+              <span class="stat-label">Score</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value is-gold" id="high-score-value">0</span>
+              <span class="stat-label">Best Score</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value is-magenta" id="mines-left-value">10</span>
+              <span class="stat-label">Mines Left</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value is-emerald" id="safe-left-value">71</span>
+              <span class="stat-label">Safe Left</span>
+            </div>
+            <div class="stat-item stat-item-wide">
+              <span class="stat-label">Elapsed Time</span>
+              <span class="stat-value" id="timer-value">00:00</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="predictor-card minesweeper-predictor-card" aria-label="Deduction Outlook">
+          <div class="predictor-header">
+            <h2 class="predictor-title">Deduction Outlook</h2>
+            <span class="forecast-pct" id="forecast-percent">85%</span>
+          </div>
+          <div class="predictor-bar" aria-hidden="true">
+            <div class="predictor-fill is-cyan" id="forecast-fill" style="width: 85%"></div>
+          </div>
+          <div class="predictor-meta">
+            <span id="forecast-label">FAVORABLE</span>
+            <span id="forecast-grid-meta">9×9 // 10 MINES</span>
+          </div>
+          <p class="predictor-text" id="forecast-detail">
+            First click is shielded — guaranteed 3×3 safe opening cascade.
+          </p>
+        </section>
+
+        <section class="hud-card minesweeper-keys-card" aria-label="Keyboard Shortcuts">
+          <h2 class="hud-card-title">Keyboard Shortcuts</h2>
+          <div class="key-hints">
+            <span class="key-hint-item"><span class="kbd">↑↓←→</span> Cursor</span>
+            <span class="key-hint-item"><span class="kbd">Enter</span>/<span class="kbd">Space</span> Reveal</span>
+            <span class="key-hint-item"><span class="kbd">F</span> Flag</span>
+            <span class="key-hint-item"><span class="kbd">C</span> Chord</span>
+            <span class="key-hint-item"><span class="kbd">H</span> Hint</span>
+            <span class="key-hint-item"><span class="kbd">S</span> Start</span>
+            <span class="key-hint-item"><span class="kbd">R</span> Reset</span>
+          </div>
+        </section>
+      </aside>
+    </main>
+  </div>
+
+  <script type="module" src="../dist/games/minesweeper/main.js"></script>
+</body>
+</html>

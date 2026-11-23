@@ -1,7 +1,7 @@
 # NEXUS ARCADE — Product & Technical Requirements
 
 ## 1. Overview & Architecture
-- **Product Name**: **NEXUS ARCADE** — a cyber-arcade browser gaming hub featuring 4 full-featured, interactive games built with **Node.js**, **strict TypeScript (`strict: true`)**, **HTML5**, and **CSS3** (zero runtime npm dependencies).
+- **Product Name**: **NEXUS ARCADE** — a cyber-arcade browser gaming hub featuring 6 full-featured, interactive games built with **Node.js**, **strict TypeScript (`strict: true`)**, **HTML5**, and **CSS3** (zero runtime npm dependencies).
 - **Module Structure**:
   - `ts/server.ts`: Zero-dependency Node HTTP static server (`PORT=4173` default) supporting foreground, `--daemon`, and `--stop` modes, proper MIME types, and path-traversal guards (`403`/`404`).
   - `ts/shared/arcade.ts`: Synthesized Web Audio SFX singleton (`ArcadeAudio`), persistent mute header wiring (`initArcadeHeader()`), `formatTime()`, and `clamp()`.
@@ -13,14 +13,16 @@
 
 ## 2. Landing Page (`index.html`, `styles/landing.css`, `ts/landing.ts`)
 - **Visual Atmosphere**:
-  - Cyber-arcade dark backdrop with animated ambient starfield and synthwave perspective horizon `<canvas id="arcade-backdrop">`, sharp neon header (`NEXUS ARCADE`), global sound mute toggle (`[data-mute-toggle]`), and keyboard navigation hints.
-- **2x2 Game Grid Layout**:
-  - `.game-grid` occupies **80% of the viewport width** (`width: 80%; margin: 0 auto; display: grid; grid-template-columns: repeat(2, 1fr)`).
-  - Contains **4 large square cards** (`aspect-ratio: 1 / 1`) with **rounded corners** (`border-radius: 26px`) linking directly to:
+  - Cyber-arcade dark backdrop with animated ambient starfield and synthwave perspective horizon `<canvas id="arcade-backdrop">`, sharp neon header (`NEXUS ARCADE`, `6 CABINETS ONLINE`), global sound mute toggle (`[data-mute-toggle]`), and keyboard navigation hints (`1`–`6`).
+- **3×2 Game Grid Layout (Responsive 3-Col / 2-Col / 1-Col)**:
+  - `.game-grid` occupies **80% of the viewport width** (`width: 80%; margin: 0 auto; display: grid; grid-template-columns: repeat(3, 1fr)` at desktop `>= 1024px`), adapts to `repeat(2, 1fr)` on tablet (`<= 1023px`), and stacks cleanly to `1fr` (`92%` width) on mobile (`<= 720px`).
+  - Contains **6 square cards** (`aspect-ratio: 1 / 1`) with **rounded corners** (`border-radius: 26px`) and responsive clamp sizing so all active telemetry pills and `PLAY NOW →` fit cleanly inside each card at both `1440×900` and `1024×768`, linking directly to:
     1. `games/tetris.html` — **Tetris** (`TETROMINO OVERDRIVE`)
     2. `games/tictactoe.html` — **Tic-Tac-Toe** (`NEURAL GRID DUEL`)
     3. `games/chess.html` — **Chess** (`GRANDMASTER PROTOCOL`)
     4. `games/mahjong.html` — **Mahjong** (`IMPERIAL TILE DYNASTY`)
+    5. `games/minesweeper.html` — **Minesweeper** (`QUANTUM MINESWEEPER`)
+    6. `games/game2048.html` — **2048** (`HYPER 2048`)
 - **Inactive Card Mode** (`data-active="false"`, default when not hovered or focused):
   - Displays custom glowing SVG emblem/icon, bold game name, stylized cool title, slot tag, key chip, and subtle breathing neon border frame.
 - **Active Card Mode** (`data-active="true"`, activated on mouse hover / pointer enter OR keyboard focus):
@@ -31,16 +33,18 @@
     - *Tic-Tac-Toe*: Animated 3×3 neon X/O laser duel culminating in a pulsing winning laser strike.
     - *Chess*: Tactical holographic 8×8 grid with sweeping attack lines and animated glowing pieces.
     - *Mahjong*: Floating beveled tiles with glowing pair-match laser connectors.
+    - *Minesweeper*: Pulsing 8×8 neon grid with expanding flood-reveal wave, glowing numeric clues, flagged mines, and rotating radar/sonar scan.
+    - *2048*: Animated 4×4 glowing energy tiles sliding and merging (`2 → 4 → 8 → 16 → 2048`) with luminous merge shockwaves.
   - **Revealed HUD Telemetry & Action Badge**: Reveals live feature pills and a pulsing `PLAY NOW →` badge.
   - **Sibling Focus-Off Dimming**: Non-active cards smoothly transition to `data-dimmed="true"` (lower opacity and subtle scale-down) while one card is active; leaving/blurring cleanly returns all cards to inactive mode.
 - **Keyboard Navigation**:
-  - `ArrowLeft`, `ArrowRight`, `ArrowUp`, `ArrowDown` navigate the 2×2 grid and activate focus mode on the targeted card.
-  - Number keys `1`–`4` launch the corresponding game directly.
+  - `ArrowLeft`, `ArrowRight`, `ArrowUp`, `ArrowDown` dynamically compute the active grid column count (`3`, `2`, or `1`) and navigate across the 6-card grid, activating focus mode on the targeted card.
+  - Number keys `1`–`6` launch the corresponding game directly.
   - `Enter` or `Space` launches the focused card; `Escape` clears card focus.
 
 ---
 
-## 3. Shared Game Standards (All 4 Games)
+## 3. Shared Game Standards (All 6 Games)
 Every game page in `games/` implements:
 1. **Shared Topbar & Navigation**: Sticky `.arcade-topbar` with Back to Arcade link (`../index.html`), game badge, and `[data-mute-toggle]` sound button wired via `initArcadeHeader()`.
 2. **Essential Controls**: Explicit **Start** and **Reset** buttons alongside game-specific actions (Pause, Undo, Hint, Shuffle, Difficulty/Layout selectors).
@@ -73,12 +77,22 @@ Every game page in `games/` implements:
 - **Engine & Forecast**: Exact top/left/right free-tile blocking rules, constructive reverse-deal solvable generator (`>= 3` open pairs at start), combo + layer bonus scoring, `localStorage` best score, undo stack (matches and shuffles), hint finder, constructive shuffle, deadlock & victory detection, and `getWinForecast()` (`HIGH CHANCE`, `FAVORABLE`, `RISKY`, `NO MOVES — SHUFFLE`, `VICTORY`).
 - **Controls & UI**: `#start-btn`, `#reset-btn`, `#hint-btn`, `#undo-btn`, `#shuffle-btn`, `#highlight-btn`, layout selector, click tile pairs, and keyboard (`H`, `U`/`Z`, `S`, `F`, `Enter`, `R`, `Escape`).
 
+### 4.5 Minesweeper — *QUANTUM MINESWEEPER* (`games/minesweeper.html`, `ts/games/minesweeper/*`)
+- **Gameplay**: Guaranteed-safe first click (mines placed after first `reveal(r, c)` excluding the 3×3 zone around `(r, c)`), BFS flood-fill zero cascades, flag toggling (`toggleFlag`), reveal guard on flagged cells, and neighbor chording (`chord`). Three difficulty tiers: **Beginner** (`9×9` / 10 mines, default), **Intermediate** (`12×12` / 22 mines), and **Expert** (`16×16` / 40 mines), auto-sized cleanly inside `1440×900`.
+- **Engine & Forecast**: Frontier deduction solver (`getHint()` scanning revealed frontier via direct count rules, pairwise subset reduction, and component backtracking, falling back to lowest-mine-probability cell when guessing is unavoidable), scoring + `localStorage` high-score persistence, and `getWinForecast()` (`CERTAIN WIN`, `DEDUCTIBLE`, `FAVORABLE`, `RISKY`, `VICTORY`, `DETONATED`).
+- **Controls & UI**: `#start-btn`, `#reset-btn`, `#hint-btn`, `#flag-mode-btn` (`#flag-mode-label`), `#difficulty-control [data-difficulty="beginner"|"intermediate"|"expert"]`, `#mine-board-frame`, `#mine-board`, `.mine-cell[data-row][data-col][data-index]`, `#score-value`, `#high-score-value`, `#mines-left-value`, `#safe-left-value`, `#timer-value`, `#forecast-fill`/`#forecast-label`/`#forecast-percent`/`#forecast-detail`/`#forecast-grid-meta`, `#status-banner`, mouse left/right click + chord, and keyboard (`Arrow` keys, `Enter`/`Space`, `F`, `C`, `H`, `S`, `R`).
+
+### 4.6 2048 — *HYPER 2048* (`games/game2048.html`, `ts/games/game2048/*`)
+- **Gameplay**: Exact 4×4 slide and merge rules across all 4 directions (`up`, `down`, `left`, `right`) enforcing single-merge-per-turn, no-op move guard, seedable `90%` `2` / `10%` `4` spawn RNG, multi-step `undo()` stack, `2048` win milestone with **Continue Endless** (`continueEndless()`) mode, and `GAME OVER` detection when full with zero adjacent equal pairs.
+- **Engine & Forecast**: 2-ply expectimax/heuristic analyzer (`getBestMoveHint()` scoring empty cells, snake monotonicity, corner anchoring, and merge smoothness) and `getWinForecast()` (`LOCKED IN`, `STRONG FLOW`, `BALANCED`, `TIGHT GRID`, `CRITICAL`, `2048 REACHED`, `GRID LOCKED`).
+- **Controls & UI**: `#start-btn`, `#reset-btn`, `#undo-btn`, `#hint-btn`, `#continue-btn`, `#mode-control [data-mode="classic"|"endless"]`, `#btn-up`/`#btn-down`/`#btn-left`/`#btn-right`, `#hint-direction-badge`, `#grid-2048` (`[data-cell="0".."15"]`), `#score-value`, `#high-score-value`, `#best-tile-value`, `#moves-value`, `#merge-streak-value`, `#forecast-fill`/`#forecast-label`/`#forecast-percent`/`#forecast-detail`, `#status-banner`, `#game-overlay` (`#overlay-continue-btn`, `#overlay-reset-btn`), swipe gestures, and keyboard (`Arrow` keys/`WASD`, `U`/`Z`, `H`, `Enter`, `R`).
+
 ---
 
 ## 5. Automated Testing Requirements
-- **Unit & Server Tests** (`tests/hub.test.ts`, `tests/tetris.test.ts`, `tests/tictactoe.test.ts`, `tests/chess.test.ts`, `tests/mahjong.test.ts`):
+- **Unit & Server Tests** (`tests/hub.test.ts`, `tests/tetris.test.ts`, `tests/tictactoe.test.ts`, `tests/chess.test.ts`, `tests/mahjong.test.ts`, `tests/minesweeper.test.ts`, `tests/game2048.test.ts`):
   - Validate static HTTP server routes, MIME types, 404, 405, and path-traversal protection (`403`).
-  - Validate shared helpers (`formatTime`, `clamp`, `ArcadeAudio`) and pure TypeScript engines across all 4 games.
+  - Validate shared helpers (`formatTime`, `clamp`, `ArcadeAudio`) and pure TypeScript engines across all 6 games.
 - **Headless Chrome CDP End-to-End Tests** (`tests/helpers/cdp.ts`):
-  - Verify landing page 2×2 80%-width square rounded cards, hover & keyboard active/dimmed state transitions, and zero runtime/network errors.
-  - Verify all 4 games render cleanly at `1440×900` and execute interactive Start, Gameplay/AI turn, Score, Predictor/Forecast, and Reset flows with zero `pageErrors`, zero `consoleErrors`, and zero `failedRequests`.
+  - Verify landing page 3×2 80%-width square rounded cards (at `1440×900` and `1024×768`), responsive 2-col tablet & 1-col mobile breakpoints, hover & dynamic keyboard active/dimmed state transitions, and zero runtime/network errors.
+  - Verify all 6 games render cleanly at `1440×900` and execute interactive Start, Gameplay/AI/Solver turn, Score, Predictor/Forecast, and Reset flows with zero `pageErrors`, zero `consoleErrors`, and zero `failedRequests`.

@@ -1,0 +1,564 @@
+/* ==========================================================================
+   HYPER 2048 — Cyber-Arcade Glassmorphic Grid, Neon Tile Tiers & Animations
+   ========================================================================== */
+
+.game2048-body .arcade-topbar {
+  padding: 9px 24px;
+}
+
+.game2048-shell {
+  width: min(1320px, 94vw);
+  margin: 12px auto 14px;
+  grid-template-columns: minmax(0, 1fr) 356px;
+  gap: 18px;
+}
+
+.game2048-stage {
+  padding: 14px 18px;
+  gap: 12px;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(249, 115, 22, 0.08), transparent 62%),
+    radial-gradient(circle at 20% 80%, rgba(0, 245, 255, 0.06), transparent 55%),
+    var(--bg-card);
+}
+
+.game2048-sidebar {
+  gap: 10px;
+}
+
+.game2048-sidebar .hud-card,
+.game2048-sidebar .predictor-card {
+  padding: 12px 14px;
+}
+
+.game2048-sidebar .hud-card-title {
+  margin-bottom: 8px;
+  font-size: 0.74rem;
+}
+
+/* Status Banner Mode Pill */
+.mode-pill {
+  flex-shrink: 0;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--neon-gold);
+  background: rgba(251, 191, 36, 0.14);
+  border: 1px solid rgba(251, 191, 36, 0.42);
+  white-space: nowrap;
+}
+
+.status-banner.is-victory .mode-pill {
+  color: #6ee7b7;
+  background: rgba(16, 185, 129, 0.2);
+  border-color: rgba(16, 185, 129, 0.55);
+}
+
+.status-banner.is-defeat .mode-pill {
+  color: #fda4af;
+  background: rgba(251, 113, 133, 0.2);
+  border-color: rgba(251, 113, 133, 0.55);
+}
+
+/* ==========================================================================
+   4x4 Glassmorphic Playfield Frame & Cells
+   ========================================================================== */
+
+.board2048-frame {
+  position: relative;
+  padding: 10px;
+  border-radius: 22px;
+  background: linear-gradient(
+    145deg,
+    rgba(249, 115, 22, 0.24),
+    rgba(139, 92, 246, 0.22),
+    rgba(0, 245, 255, 0.24)
+  );
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow:
+    0 18px 46px rgba(0, 0, 0, 0.52),
+    0 0 36px rgba(249, 115, 22, 0.12),
+    inset 0 0 22px rgba(6, 8, 18, 0.65);
+}
+
+.grid-2048 {
+  position: relative;
+  width: min(432px, 48vh, 84vw);
+  aspect-ratio: 1 / 1;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-rows: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  padding: 10px;
+  border-radius: 16px;
+  background: rgba(6, 9, 21, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.72);
+  touch-action: none;
+  user-select: none;
+  outline: none;
+}
+
+.grid-2048:focus-visible {
+  box-shadow:
+    inset 0 0 30px rgba(0, 0, 0, 0.72),
+    0 0 0 2px var(--neon-cyan);
+}
+
+.cell-2048 {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  border-radius: 12px;
+  background: rgba(17, 25, 48, 0.68);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.48);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+}
+
+.tile-2048 {
+  width: 100%;
+  height: 100%;
+  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(1.25rem, 3.1vh, 2rem);
+  letter-spacing: 0.02em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  backdrop-filter: blur(8px);
+  border: 1.5px solid rgba(255, 255, 255, 0.28);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 6px 16px rgba(0, 0, 0, 0.35);
+  will-change: transform, opacity;
+}
+
+/* Adaptive digit scaling so 3-5 digit tiles always stay crisp inside cells */
+.tile-2048.digits-3 {
+  font-size: clamp(1.1rem, 2.7vh, 1.7rem);
+}
+
+.tile-2048.digits-4 {
+  font-size: clamp(0.95rem, 2.2vh, 1.38rem);
+}
+
+.tile-2048.digits-5 {
+  font-size: clamp(0.82rem, 1.85vh, 1.12rem);
+}
+
+/* ==========================================================================
+   Neon Glowing Color Tiers (2 -> 2048 -> 4096+)
+   ========================================================================== */
+
+.tile-2048[data-tile='2'] {
+  background: linear-gradient(145deg, rgba(22, 36, 68, 0.94), rgba(14, 24, 48, 0.96));
+  border-color: rgba(56, 189, 248, 0.48);
+  color: #e0f2fe;
+  box-shadow:
+    inset 0 1px 0 rgba(125, 211, 252, 0.22),
+    0 0 12px rgba(56, 189, 248, 0.14);
+}
+
+.tile-2048[data-tile='4'] {
+  background: linear-gradient(145deg, rgba(14, 58, 92, 0.94), rgba(11, 40, 68, 0.96));
+  border-color: rgba(0, 245, 255, 0.62);
+  color: #67e8f9;
+  box-shadow:
+    inset 0 1px 0 rgba(0, 245, 255, 0.28),
+    0 0 16px rgba(0, 245, 255, 0.22);
+}
+
+.tile-2048[data-tile='8'] {
+  background: linear-gradient(145deg, rgba(6, 95, 70, 0.94), rgba(4, 65, 49, 0.96));
+  border-color: rgba(16, 185, 129, 0.78);
+  color: #a7f3d0;
+  box-shadow:
+    inset 0 1px 0 rgba(110, 231, 183, 0.28),
+    0 0 18px rgba(16, 185, 129, 0.28);
+}
+
+.tile-2048[data-tile='16'] {
+  background: linear-gradient(145deg, rgba(8, 128, 152, 0.94), rgba(6, 86, 114, 0.96));
+  border-color: #00f5ff;
+  color: #ffffff;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.34),
+    0 0 20px rgba(0, 245, 255, 0.36);
+}
+
+.tile-2048[data-tile='32'] {
+  background: linear-gradient(145deg, rgba(91, 33, 182, 0.95), rgba(67, 22, 138, 0.96));
+  border-color: #a78bfa;
+  color: #f3e8ff;
+  box-shadow:
+    inset 0 1px 0 rgba(221, 214, 254, 0.3),
+    0 0 22px rgba(139, 92, 246, 0.42);
+}
+
+.tile-2048[data-tile='64'] {
+  background: linear-gradient(145deg, rgba(162, 28, 114, 0.95), rgba(112, 17, 79, 0.96));
+  border-color: #ff2bd6;
+  color: #fdf2f8;
+  box-shadow:
+    inset 0 1px 0 rgba(251, 207, 232, 0.32),
+    0 0 24px rgba(255, 43, 214, 0.42);
+}
+
+.tile-2048[data-tile='128'] {
+  background: linear-gradient(145deg, rgba(234, 88, 12, 0.95), rgba(154, 52, 18, 0.96));
+  border-color: #fb923c;
+  color: #fff7ed;
+  box-shadow:
+    inset 0 1px 0 rgba(254, 215, 170, 0.36),
+    0 0 24px rgba(249, 115, 22, 0.46);
+}
+
+.tile-2048[data-tile='256'] {
+  background: linear-gradient(145deg, rgba(225, 29, 72, 0.95), rgba(234, 88, 12, 0.96));
+  border-color: #fb7185;
+  color: #ffffff;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 228, 230, 0.38),
+    0 0 26px rgba(251, 113, 133, 0.5);
+}
+
+.tile-2048[data-tile='512'] {
+  background: linear-gradient(145deg, rgba(217, 119, 6, 0.96), rgba(180, 83, 9, 0.98));
+  border-color: #fcd34d;
+  color: #ffffff;
+  box-shadow:
+    inset 0 1px 0 rgba(254, 243, 199, 0.42),
+    0 0 28px rgba(245, 158, 11, 0.52);
+}
+
+.tile-2048[data-tile='1024'] {
+  background: linear-gradient(145deg, #f59e0b, #d97706);
+  border-color: #fef08a;
+  color: #ffffff;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.52),
+    0 0 32px rgba(251, 191, 36, 0.62);
+}
+
+.tile-2048[data-tile='2048'] {
+  background: linear-gradient(135deg, #fbbf24 0%, #f97316 48%, #ff2bd6 100%);
+  border-color: #fef9c3;
+  color: #ffffff;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.65),
+    0 0 36px rgba(251, 191, 36, 0.78),
+    0 0 18px rgba(255, 43, 214, 0.45);
+}
+
+.tile-2048[data-tier='super'] {
+  background: linear-gradient(135deg, #00f5ff 0%, #8b5cf6 52%, #ff2bd6 100%);
+  border-color: #ffffff;
+  color: #ffffff;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.75),
+    0 0 38px rgba(0, 245, 255, 0.72),
+    0 0 24px rgba(255, 43, 214, 0.55);
+}
+
+/* ==========================================================================
+   Tile Motion & Highlight Keyframes
+   ========================================================================== */
+
+@keyframes tile-pop-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.38);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes tile-merge-pulse {
+  0% {
+    transform: scale(0.82);
+    filter: brightness(1.45);
+  }
+  55% {
+    transform: scale(1.13);
+    filter: brightness(1.22);
+  }
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+}
+
+@keyframes tile-slide-in {
+  0% {
+    transform: translate(var(--slide-x, 0px), var(--slide-y, 0px));
+  }
+  100% {
+    transform: translate(0, 0);
+  }
+}
+
+.tile-2048.is-spawned {
+  animation: tile-pop-in 190ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.tile-2048.is-merged {
+  animation: tile-merge-pulse 230ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.tile-2048.is-slid {
+  animation: tile-slide-in 120ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ==========================================================================
+   Overlay Typography & Actions
+   ========================================================================== */
+
+.game2048-overlay-card {
+  max-width: 370px;
+}
+
+.overlay-kicker {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: var(--neon-gold);
+  margin-bottom: 6px;
+}
+
+.overlay-title {
+  margin: 0 0 8px;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--text-primary);
+}
+
+.overlay-subtitle {
+  margin: 0 0 18px;
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+
+.overlay-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.overlay-actions .btn {
+  min-width: 136px;
+}
+
+/* ==========================================================================
+   On-Screen D-Pad & Expectimax Hint Pulse
+   ========================================================================== */
+
+.dpad-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.hint-badge-row {
+  min-height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hint-direction-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 12px;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--neon-cyan);
+  background: rgba(0, 245, 255, 0.14);
+  border: 1px solid rgba(0, 245, 255, 0.55);
+  box-shadow: 0 0 16px rgba(0, 245, 255, 0.25);
+}
+
+.hint-direction-badge[hidden] {
+  display: none;
+}
+
+.dpad-cross {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(84px, 108px));
+  grid-template-rows: auto auto;
+  gap: 7px;
+  justify-content: center;
+}
+
+.dpad-up {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.dpad-left {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.dpad-down {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+.dpad-right {
+  grid-column: 3;
+  grid-row: 2;
+}
+
+.dpad-btn {
+  padding: 8px 10px;
+  font-size: 0.8rem;
+  border-radius: 10px;
+  touch-action: manipulation;
+}
+
+@keyframes hint-dir-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 14px rgba(0, 245, 255, 0.45);
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    box-shadow: 0 0 26px rgba(0, 245, 255, 0.85), 0 0 10px rgba(255, 43, 214, 0.45);
+    transform: translateY(-1px) scale(1.04);
+  }
+}
+
+.dpad-btn.is-hinted {
+  border-color: var(--neon-cyan);
+  color: #ffffff;
+  background: linear-gradient(135deg, rgba(0, 245, 255, 0.3), rgba(255, 43, 214, 0.24));
+  animation: hint-dir-pulse 950ms ease-in-out infinite;
+}
+
+/* ==========================================================================
+   Sidebar Controls, Telemetry Grid & Forecast Styling
+   ========================================================================== */
+
+.controls-grid-2048 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.continue-endless-btn {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.continue-endless-btn[hidden] {
+  display: none;
+}
+
+.mode-block {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.stat-grid-2048 {
+  gap: 8px;
+}
+
+.stat-grid-2048 .stat-item {
+  padding: 8px 10px;
+}
+
+.stat-grid-2048 .stat-value {
+  font-size: 1.2rem;
+}
+
+.stat-item-wide {
+  grid-column: span 2;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.forecast-percent {
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--neon-cyan);
+  font-variant-numeric: tabular-nums;
+}
+
+.forecast-label {
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--text-primary);
+}
+
+.key-hints-2048 {
+  gap: 6px 12px;
+  font-size: 0.77rem;
+}
+
+/* ==========================================================================
+   Responsive Breakpoints
+   ========================================================================== */
+
+@media (max-width: 1024px) {
+  .game2048-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .grid-2048 {
+    width: min(410px, 84vw);
+  }
+}
+
+@media (max-width: 680px) {
+  .game2048-body .arcade-topbar {
+    padding: 10px 14px;
+  }
+
+  .grid-2048 {
+    width: min(350px, 88vw);
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .dpad-cross {
+    grid-template-columns: repeat(3, minmax(74px, 1fr));
+  }
+
+  .stat-item-wide {
+    grid-column: span 2;
+  }
+}

@@ -1,0 +1,523 @@
+/* ==========================================================================
+   NEXUS ARCADE — Quantum Minesweeper
+   Neon beveled sector tiles, cyber number palette & zero-overflow layout
+   ========================================================================== */
+
+.minesweeper-body .arcade-topbar {
+  padding: 10px 24px;
+}
+
+.minesweeper-shell {
+  width: min(1320px, 95vw);
+  margin: 14px auto 16px;
+  grid-template-columns: minmax(0, 1fr) 352px;
+  gap: 20px;
+}
+
+.minesweeper-stage {
+  padding: 16px 20px;
+  gap: 12px;
+}
+
+.minesweeper-sidebar {
+  gap: 12px;
+}
+
+.minesweeper-sidebar .hud-card,
+.minesweeper-sidebar .predictor-card {
+  padding: 14px 16px;
+}
+
+.minesweeper-sidebar .hud-card-title {
+  margin-bottom: 10px;
+}
+
+.minesweeper-stage .status-banner {
+  padding: 10px 14px;
+  font-size: 0.88rem;
+}
+
+.mode-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: rgba(6, 8, 18, 0.78);
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.mode-pill.is-flag-mode {
+  border-color: rgba(255, 43, 214, 0.65);
+  background: rgba(255, 43, 214, 0.16);
+  color: #f9a8d4;
+}
+
+/* Board Container & Responsive Auto-Sizing */
+.mine-board-wrap {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mine-board-frame {
+  --grid-cols: 9;
+  --grid-rows: 9;
+  --board-size: min(460px, calc(100vh - 255px), 88vw);
+  position: relative;
+  padding: 12px;
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at 50% 45%, rgba(0, 245, 255, 0.06), transparent 72%),
+    rgba(6, 8, 18, 0.9);
+  border: 1px solid rgba(0, 245, 255, 0.25);
+  box-shadow:
+    inset 0 0 34px rgba(0, 0, 0, 0.72),
+    0 0 32px rgba(0, 245, 255, 0.1);
+  transition: border-color 220ms ease, box-shadow 220ms ease;
+}
+
+.mine-board-frame[data-difficulty='beginner'] {
+  --board-size: min(470px, calc(100vh - 255px), 88vw);
+}
+
+.mine-board-frame[data-difficulty='intermediate'] {
+  --board-size: min(530px, calc(100vh - 255px), 88vw);
+}
+
+.mine-board-frame[data-difficulty='expert'] {
+  --board-size: min(580px, calc(100vh - 255px), 88vw);
+}
+
+.mine-board-frame[data-status='playing'] {
+  border-color: rgba(0, 245, 255, 0.44);
+  box-shadow:
+    inset 0 0 34px rgba(0, 0, 0, 0.72),
+    0 0 36px rgba(0, 245, 255, 0.15);
+}
+
+.mine-board-frame[data-flag-mode='true'][data-status='playing'],
+.mine-board-frame[data-flag-mode='true'][data-status='idle'] {
+  border-color: rgba(255, 43, 214, 0.54);
+  box-shadow:
+    inset 0 0 34px rgba(0, 0, 0, 0.72),
+    0 0 34px rgba(255, 43, 214, 0.18);
+}
+
+.mine-board-frame[data-status='won'] {
+  border-color: rgba(16, 185, 129, 0.65);
+  box-shadow:
+    inset 0 0 34px rgba(0, 0, 0, 0.72),
+    0 0 38px rgba(16, 185, 129, 0.24);
+}
+
+.mine-board-frame[data-status='lost'] {
+  border-color: rgba(251, 113, 133, 0.7);
+  box-shadow:
+    inset 0 0 34px rgba(0, 0, 0, 0.72),
+    0 0 38px rgba(251, 113, 133, 0.28);
+}
+
+.mine-board {
+  display: grid;
+  width: var(--board-size);
+  height: var(--board-size);
+  grid-template-columns: repeat(var(--grid-cols), minmax(0, 1fr));
+  grid-template-rows: repeat(var(--grid-rows), minmax(0, 1fr));
+  gap: 3px;
+}
+
+.mine-board-frame[data-difficulty='beginner'] .mine-board {
+  gap: 4px;
+}
+
+/* Neon Beveled Cells */
+.mine-cell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  border-radius: 7px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  background: linear-gradient(145deg, rgba(28, 40, 78, 0.96), rgba(12, 18, 38, 0.98));
+  box-shadow:
+    inset 1px 1px 0 rgba(255, 255, 255, 0.12),
+    inset -2px -2px 0 rgba(4, 6, 16, 0.72),
+    0 2px 6px rgba(0, 0, 0, 0.35);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-weight: 800;
+  font-size: clamp(0.75rem, calc(var(--board-size) / var(--grid-cols) * 0.52), 1.35rem);
+  line-height: 1;
+  cursor: pointer;
+  user-select: none;
+  transition:
+    transform 100ms ease,
+    border-color 140ms ease,
+    box-shadow 140ms ease,
+    background 140ms ease;
+}
+
+.mine-board-frame[data-difficulty='expert'] .mine-cell {
+  border-radius: 5px;
+}
+
+.mine-cell:not(.is-revealed):hover {
+  transform: translateY(-1px);
+  border-color: rgba(0, 245, 255, 0.68);
+  background: linear-gradient(145deg, rgba(34, 52, 98, 0.98), rgba(15, 23, 48, 0.98));
+  box-shadow:
+    inset 1px 1px 0 rgba(0, 245, 255, 0.28),
+    inset -2px -2px 0 rgba(4, 6, 16, 0.72),
+    0 0 12px rgba(0, 245, 255, 0.26);
+}
+
+.mine-board-frame[data-flag-mode='true'] .mine-cell:not(.is-revealed):hover {
+  border-color: rgba(255, 43, 214, 0.72);
+  box-shadow:
+    inset 1px 1px 0 rgba(255, 43, 214, 0.3),
+    inset -2px -2px 0 rgba(4, 6, 16, 0.72),
+    0 0 12px rgba(255, 43, 214, 0.28);
+}
+
+.mine-cell:focus-visible,
+.mine-cell.is-cursor {
+  outline: none;
+  z-index: 3;
+  box-shadow:
+    inset 0 0 0 2px var(--neon-cyan),
+    0 0 14px rgba(0, 245, 255, 0.45);
+}
+
+.mine-cell.is-revealed {
+  border-radius: 5px;
+  border-color: rgba(148, 163, 184, 0.13);
+  background: rgba(6, 9, 20, 0.9);
+  box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.72);
+  cursor: default;
+}
+
+.mine-cell.is-revealed.has-number {
+  cursor: pointer;
+}
+
+.mine-cell.is-revealed.has-number:hover {
+  border-color: rgba(0, 245, 255, 0.36);
+  background: rgba(11, 17, 36, 0.95);
+}
+
+.mine-cell.is-flagged {
+  border-color: rgba(255, 43, 214, 0.58);
+  background: linear-gradient(145deg, rgba(46, 20, 66, 0.94), rgba(16, 13, 35, 0.98));
+  box-shadow:
+    inset 1px 1px 0 rgba(255, 43, 214, 0.24),
+    inset -2px -2px 0 rgba(4, 6, 16, 0.75),
+    0 0 10px rgba(255, 43, 214, 0.22);
+}
+
+.mine-cell.is-wrong-flag {
+  border-color: rgba(251, 113, 133, 0.75);
+  background: rgba(68, 16, 30, 0.85);
+}
+
+.mine-cell.is-mine {
+  border-color: rgba(251, 113, 133, 0.45);
+  background: rgba(34, 11, 24, 0.92);
+}
+
+.mine-cell.is-detonated {
+  border-color: var(--neon-crimson);
+  background: radial-gradient(circle, rgba(251, 113, 133, 0.55), rgba(66, 12, 26, 0.96));
+  box-shadow:
+    0 0 22px rgba(251, 113, 133, 0.78),
+    inset 0 0 12px rgba(251, 191, 36, 0.45);
+  animation: ms-detonate-pulse 720ms ease-in-out infinite alternate;
+  z-index: 4;
+}
+
+/* Hint Highlight Pulses */
+.mine-cell[data-hint='safe'] {
+  z-index: 4;
+  border-color: var(--neon-emerald);
+  box-shadow:
+    inset 0 0 0 2px var(--neon-emerald),
+    0 0 18px rgba(16, 185, 129, 0.65);
+  animation: ms-hint-safe-pulse 900ms ease-in-out infinite alternate;
+}
+
+.mine-cell[data-hint='mine'] {
+  z-index: 4;
+  border-color: var(--neon-gold);
+  box-shadow:
+    inset 0 0 0 2px var(--neon-gold),
+    0 0 18px rgba(251, 191, 36, 0.65);
+  animation: ms-hint-mine-pulse 900ms ease-in-out infinite alternate;
+}
+
+.mine-cell[data-hint='guess'] {
+  z-index: 4;
+  border-color: var(--neon-cyan);
+  box-shadow:
+    inset 0 0 0 2px var(--neon-cyan),
+    0 0 16px rgba(0, 245, 255, 0.58);
+  animation: ms-hint-safe-pulse 950ms ease-in-out infinite alternate;
+}
+
+@keyframes ms-hint-safe-pulse {
+  from {
+    box-shadow:
+      inset 0 0 0 2px var(--neon-emerald),
+      0 0 10px rgba(16, 185, 129, 0.4);
+  }
+  to {
+    box-shadow:
+      inset 0 0 0 2px var(--neon-cyan),
+      0 0 22px rgba(0, 245, 255, 0.72);
+  }
+}
+
+@keyframes ms-hint-mine-pulse {
+  from {
+    box-shadow:
+      inset 0 0 0 2px var(--neon-gold),
+      0 0 10px rgba(251, 191, 36, 0.45);
+  }
+  to {
+    box-shadow:
+      inset 0 0 0 2px var(--neon-magenta),
+      0 0 22px rgba(255, 43, 214, 0.72);
+  }
+}
+
+@keyframes ms-detonate-pulse {
+  from {
+    transform: scale(1);
+    box-shadow: 0 0 16px rgba(251, 113, 133, 0.65);
+  }
+  to {
+    transform: scale(1.04);
+    box-shadow: 0 0 26px rgba(251, 113, 133, 0.95);
+  }
+}
+
+/* Cyber Number Palette (1-8) */
+.mine-cell.num-1 {
+  color: #00f5ff;
+  text-shadow: 0 0 10px rgba(0, 245, 255, 0.45);
+}
+
+.mine-cell.num-2 {
+  color: #10b981;
+  text-shadow: 0 0 10px rgba(16, 185, 129, 0.45);
+}
+
+.mine-cell.num-3 {
+  color: #fb7185;
+  text-shadow: 0 0 10px rgba(251, 113, 133, 0.45);
+}
+
+.mine-cell.num-4 {
+  color: #a78bfa;
+  text-shadow: 0 0 10px rgba(167, 139, 250, 0.45);
+}
+
+.mine-cell.num-5 {
+  color: #fbbf24;
+  text-shadow: 0 0 10px rgba(251, 191, 36, 0.45);
+}
+
+.mine-cell.num-6 {
+  color: #2dd4bf;
+  text-shadow: 0 0 10px rgba(45, 212, 191, 0.45);
+}
+
+.mine-cell.num-7 {
+  color: #f472b6;
+  text-shadow: 0 0 10px rgba(244, 114, 182, 0.45);
+}
+
+.mine-cell.num-8 {
+  color: #e2e8f0;
+  text-shadow: 0 0 8px rgba(226, 232, 240, 0.45);
+}
+
+.cell-svg {
+  width: 68%;
+  height: 68%;
+  display: block;
+  pointer-events: none;
+}
+
+/* Stage Legend */
+.mine-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 14px;
+  font-size: 0.74rem;
+  color: var(--text-secondary);
+}
+
+.legend-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+.swatch.is-unrevealed {
+  background: linear-gradient(145deg, #243466, #0f172a);
+  border: 1px solid rgba(148, 163, 184, 0.45);
+}
+
+.swatch.is-flag {
+  background: var(--neon-magenta);
+  box-shadow: 0 0 8px rgba(255, 43, 214, 0.55);
+}
+
+.swatch.is-chord {
+  background: var(--neon-cyan);
+  box-shadow: 0 0 8px rgba(0, 245, 255, 0.55);
+}
+
+.swatch.is-hint {
+  background: var(--neon-emerald);
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.55);
+}
+
+/* Sidebar Controls & Telemetry */
+.flag-mode-row {
+  margin-top: 8px;
+}
+
+#flag-mode-btn {
+  width: 100%;
+  justify-content: center;
+}
+
+#flag-mode-btn.is-active,
+#flag-mode-btn[aria-pressed='true'] {
+  border-color: var(--neon-magenta);
+  color: #f9a8d4;
+  background: rgba(255, 43, 214, 0.16);
+  box-shadow: 0 0 18px rgba(255, 43, 214, 0.25);
+}
+
+.flag-mode-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--text-muted);
+  transition: background-color 160ms ease, box-shadow 160ms ease;
+}
+
+#flag-mode-btn.is-active .flag-mode-dot {
+  background: var(--neon-magenta);
+  box-shadow: 0 0 8px var(--neon-magenta);
+}
+
+.control-group {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.control-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.ms-stat-grid {
+  gap: 8px;
+}
+
+.ms-stat-grid .stat-item {
+  padding: 8px 10px;
+}
+
+.ms-stat-grid .stat-value {
+  font-size: 1.2rem;
+}
+
+.stat-item-wide {
+  grid-column: span 2;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.forecast-pct {
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--neon-cyan);
+}
+
+.minesweeper-predictor-card .predictor-text {
+  margin-top: 8px;
+  font-size: 0.8rem;
+  line-height: 1.38;
+}
+
+.minesweeper-keys-card .key-hints {
+  gap: 6px 12px;
+  font-size: 0.76rem;
+}
+
+@media (max-width: 1024px) {
+  .minesweeper-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .mine-board-frame,
+  .mine-board-frame[data-difficulty='beginner'],
+  .mine-board-frame[data-difficulty='intermediate'],
+  .mine-board-frame[data-difficulty='expert'] {
+    --board-size: min(560px, 88vw);
+  }
+}
+
+@media (max-width: 680px) {
+  .minesweeper-stage {
+    padding: 12px;
+  }
+
+  .mine-board-frame,
+  .mine-board-frame[data-difficulty='beginner'],
+  .mine-board-frame[data-difficulty='intermediate'],
+  .mine-board-frame[data-difficulty='expert'] {
+    --board-size: min(92vw, 480px);
+    padding: 8px;
+    border-radius: 14px;
+  }
+
+  .mine-board {
+    gap: 2px;
+  }
+
+  .mine-cell {
+    border-radius: 4px;
+  }
+}
